@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAGAF - منيو رمضان</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+      import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+      // إعدادات Firebase الخاصة بك
+      const firebaseConfig = {
+        apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
+        authDomain: "nagaf-menuo.firebaseapp.com",
+        projectId: "nagaf-menuo",
+        storageBucket: "nagaf-menuo.firebasestorage.app",
+        messagingSenderId: "1049134380868",
+        appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
+        measurementId: "G-YTSRN50K1G"
+      };
+
+      // تهيئة Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app); // إضافة Analytics هنا
+      const db = getFirestore(app);
+
+      // جعل قاعدة البيانات متاحة لبقية السكريبت
+      window.db = db;
+    </script>
+
+    <style>
+        :root { 
+            --gold: #d4af37; 
+            --bg: #050505; 
+            --red-price: #8b0000; 
+            --ramadan-blue: #0a1128;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        
+        /* إضافة خلفية بنمط رمضاني خفيف */
+        body { 
+            background-color: var(--bg); 
+            background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png');
+            color: white; 
+            line-height: 1.6; 
+            overflow-x: hidden;
+        }
+
+        /* الفانوس المتحرك (الأنوار) */
+        .lantern {
+            position: fixed;
+            top: -10px;
+            right: 20px;
+            width: 60px;
+            z-index: 2000;
+            animation: swing 3s ease-in-out infinite alternate;
+            transform-origin: top center;
+            filter: drop-shadow(0 0 10px var(--gold));
+        }
+        @keyframes swing {
+            0% { transform: rotate(-5deg); }
+            100% { transform: rotate(5deg); }
+        }
+
+        header {
+            padding: 60px 20px;
+            text-align: center;
+            background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
+            position: relative;
+            border-bottom: 2px solid var(--gold);
+            overflow: hidden; /* عشان الزينة متطلعش بره */
+        }
+
+        /* تصميم الفانوس الحقيقي */
+        .lantern-wrapper {
+            position: absolute;
+            top: -10px;
+            right: 10%; /* مكانه بالنسبة للشاشة */
+            z-index: 10;
+        }
+
+        .fanoos-real {
+            width: 120px; /* حجم الفانوس */
+            filter: drop-shadow(0 0 20px #ffcc00); /* توهج ضوئي */
+            animation: swing 3s infinite ease-in-out; /* حركة أرجحة */
+            transform-origin: top center;
+        }
+
+        /* حركة التأرجح للفانوس */
+        @keyframes swing {
+            0% { transform: rotate(7deg); }
+            50% { transform: rotate(-7deg); }
+            100% { transform: rotate(7deg); }
+        }
+
+        /* إضافة تأثير أنوار (حبل زينة) في الخلفية */
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-image: url('https://www.transparenttextures.com/patterns/black-thread.png'); /* حبل وهمي */
+            opacity: 0.3;
+        }
+
+        .ramadan-kareem {
+            color: var(--gold);
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: block;
+            letter-spacing: 3px;
+        }
+
+        .logo { 
+            font-size: 5rem; 
+            font-weight: 900; 
+            color: transparent; 
+            -webkit-text-stroke: 1px var(--gold); 
+            letter-spacing: 15px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        /* شريط الأقسام */
+        .nav-container { 
+            position: sticky; 
+            top: 0; 
+            background: rgba(5,5,5,0.95); 
+            backdrop-filter: blur(10px); 
+            padding: 15px 0; 
+            z-index: 1000; 
+            border-bottom: 1px solid var(--gold); 
+            overflow-x: auto; 
+            white-space: nowrap; 
+            display: flex; 
+            justify-content: center; 
+            gap: 10px; 
+        }
+        
+        .cat-btn { 
+            background: transparent; 
+            color: #888; 
+            border: 1px solid #333; 
+            padding: 8px 25px; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.3s; 
+        }
+        .cat-btn.active { 
+            background: var(--gold); 
+            color: black; 
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+
+        /* شبكة العروض والمنتجات */
+        .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+
+        /* تصميم كارت العرض الرمضاني */
+        .deal-card { 
+            background: white; 
+            border-radius: 25px; 
+            overflow: hidden; 
+            color: #333; 
+            transition: 0.3s; 
+            position: relative; 
+            border: 1px solid var(--gold);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+        .deal-card:hover { transform: translateY(-10px); }
+        
+        .deal-header { padding: 25px 20px; text-align: center; }
+        .deal-header h2 { font-weight: 900; font-size: 1.5rem; color: #000; margin-bottom: 10px; }
+
+        /* بوكس السعر الأحمر المميز */
+        .price-box { 
+            background: var(--red-price); 
+            color: white; 
+            display: inline-flex; 
+            align-items: center; 
+            padding: 5px 20px; 
+            border-radius: 12px; 
+            margin: 10px 0; 
+            box-shadow: 0 4px 10px rgba(139, 0, 0, 0.3);
+        }
+        .price-box .num { font-size: 2.2rem; font-weight: 900; margin-left: 10px; }
+        .price-box .text { font-size: 0.8rem; border-right: 1px solid rgba(255,255,255,0.3); padding-right: 10px; line-height: 1.2; text-align: right; }
+
+        .components { color: #8b0000; font-weight: bold; font-size: 1rem; margin: 15px 0; min-height: 50px; }
+        .deal-img { width: 100%; height: 240px; object-fit: cover; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+        
+        .deal-footer { 
+            padding: 15px; 
+            background: #fff9e6; /* لون كريمي رمضاني */
+            text-align: center; 
+            border-top: 1px dashed var(--gold); 
+            font-size: 0.9rem; 
+            color: #b08d1a; 
+            font-weight: bold; 
+        }
+
+        .empty-msg { grid-column: 1/-1; text-align: center; padding: 100px; opacity: 0.5; font-size: 1.2rem; }
+
+        /* زينة النجوم */
+        .star { position: absolute; color: var(--gold); font-size: 10px; animation: blink 2s infinite; opacity: 0; }
+        @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+            .logo { font-size: 3rem; letter-spacing: 5px; }
+            .lantern { width: 40px; right: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- إضافة الفانوس -->
+    <img src="https://cdn-icons-png.flaticon.com/512/2210/2210283.png" class="lantern" alt="Ramadan Lantern">
+
+    <header>
+        <!-- الفانوس الحقيقي -->
+        <div class="lantern-wrapper">
+            <!-- ده كود فانوس مرسوم برمجياً بيظهر بوضوح عالي جداً -->
+            <svg class="fanoos-real" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 5 L55 15 L45 15 Z" fill="#d4af37" />
+                <rect x="40" y="15" width="20" height="10" fill="#d4af37" />
+                <path d="M30 25 L70 25 L85 60 L70 110 L30 110 L15 60 Z" fill="#d4af37" stroke="#8b0000" stroke-width="2"/>
+                <rect x="35" y="110" width="30" height="15" fill="#d4af37" />
+                <path d="M30 125 L70 125 L75 140 L25 140 Z" fill="#d4af37" />
+                <!-- الجزء المنور جوه الفانوس -->
+                <circle cx="50" cy="65" r="15" fill="#fff7e6">
+                    <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
+                </circle>
+            </svg>
+        </div>
+
+        <a href="info.html" style="position: absolute; top: 20px; left: 20px; color: var(--gold); text-decoration: none; font-size: 1.2rem; z-index: 100;">معلومات</a>
+
+        <div class="logo">NAGAF</div>
+        <p style="color: var(--gold); margin-top: 10px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+            🌙 مـنيو شـهر الخـير 🌙
+        </p>
+    </header>
+
+    <nav class="nav-container" id="catNav"></nav>
+
+    <div class="container">
+        <div class="grid" id="mainGrid"></div>
+    </div>
+
+    <script>
+        // متغيرات البيانات
+        let offers = [];
+        let sandwiches = [];
+        let categories = [];
+        let currentCat = "الكل";
+        let allItems = [];
+
+        // جلب البيانات من Firebase
+        async function loadData() {
+            try {
+                const offersSnapshot = await getDocs(collection(window.db, 'offers'));
+                offers = offersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const sandwichesSnapshot = await getDocs(collection(window.db, 'sandwiches'));
+                sandwiches = sandwichesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const categoriesSnapshot = await getDocs(collection(window.db, 'categories'));
+                categories = categoriesSnapshot.docs.map(doc => doc.data().name);
+
+                allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
+
+                renderCategories();
+                renderProducts();
+                createStars();
+            } catch (error) {
+                console.error("Error loading data:", error);
+                // Fallback to localStorage if Firebase fails
+                offers = JSON.parse(localStorage.getItem('nagaf_offers')) || [];
+                sandwiches = JSON.parse(localStorage.getItem('nagaf_sandwiches')) || [];
+                categories = JSON.parse(localStorage.getItem('nagaf_cats')) || [];
+                allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
+                renderCategories();
+                renderProducts();
+                createStars();
+            }
+        }
+
+        // عرض الأقسام في الأعلى
+        function renderCategories() {
+            const nav = document.getElementById('catNav');
+            let html = `<button class="cat-btn ${currentCat === 'الكل' ? 'active' : ''}" onclick="filterByCat('الكل')">الكل</button>`;
+            categories.forEach(cat => {
+                html += `<button class="cat-btn ${currentCat === cat ? 'active' : ''}" onclick="filterByCat('${cat}')">${cat}</button>`;
+            });
+            nav.innerHTML = html;
+        }
+
+        function filterByCat(catName) {
+            currentCat = catName;
+            renderCategories();
+            renderProducts();
+        }
+
+        // عرض المنتجات والعروض
+        function renderProducts() {
+            const grid = document.getElementById('mainGrid');
+
+            const filtered = currentCat === "الكل"
+                ? allItems
+                : allItems.filter(p => p.category === currentCat);
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="empty-msg">لا توجد عروض متوفرة حالياً في قسم ${currentCat}</div>`;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(p => `
+                <div class="deal-card">
+                    <div class="deal-header">
+                        <h2>${p.name}</h2>
+
+                        <div class="price-box">
+                            <span class="num">${p.price}</span>
+                            <span class="text">جنية<br>سعر العرض</span>
+                        </div>
+
+                        <div class="components">
+                            ${p.components ? p.components.replace(/\n/g, '<br>') : 'وجبة رمضانية مميزة'}
+                        </div>
+                    </div>
+
+                    <img src="${p.image}" class="deal-img">
+
+                    <div class="deal-footer">
+                        ${p.offer ? `🌙 ${p.offer}` : '🎁 صحة وهنا .. متاح الآن'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // إضافة نجوم عشوائية للخلفية
+        function createStars() {
+            const header = document.querySelector('header');
+            for (let i = 0; i < 15; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.innerHTML = '★';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                header.appendChild(star);
+            }
+        }
+
+        // تحميل البيانات عند بدء التشغيل
+        loadData();
+    </script>
+</body>
+</html>

@@ -24,13 +24,12 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // جعل الدوال متاحة لصفحة index
   window.db = db;
   window.collection = collection;
   window.onSnapshot = onSnapshot;
 
   console.log("✅ Firebase connected");
-  loadData(); // استدعي الدالة هنا داخل الموديول لضمان أن Firebase جاهز
+  loadData();
 </script>
 
     <style>
@@ -43,7 +42,6 @@
         
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
         
-        /* إضافة خلفية بنمط رمضاني خفيف */
         body { 
             background-color: var(--bg); 
             background-image: url('https://www.transparenttextures.com/patterns/islamic-art.png');
@@ -52,7 +50,7 @@
             overflow-x: hidden;
         }
 
-        /* الفانوس المتحرك (الأنوار) */
+        /* الفانوس المتحرك */
         .lantern {
             position: fixed;
             top: -10px;
@@ -74,49 +72,26 @@
             background: radial-gradient(circle, #1a1a1a 0%, #050505 100%);
             position: relative;
             border-bottom: 2px solid var(--gold);
-            overflow: hidden; /* عشان الزينة متطلعش بره */
         }
 
-        /* تصميم الفانوس الحقيقي */
         .lantern-wrapper {
             position: absolute;
             top: -10px;
-            right: 10%; /* مكانه بالنسبة للشاشة */
+            right: 10%;
             z-index: 10;
         }
 
         .fanoos-real {
-            width: 120px; /* حجم الفانوس */
-            filter: drop-shadow(0 0 20px #ffcc00); /* توهج ضوئي */
-            animation: swing 3s infinite ease-in-out; /* حركة أرجحة */
+            width: 120px;
+            filter: drop-shadow(0 0 20px #ffcc00);
+            animation: fanoosSwing 3s infinite ease-in-out;
             transform-origin: top center;
         }
 
-        /* حركة التأرجح للفانوس */
-        @keyframes swing {
+        @keyframes fanoosSwing {
             0% { transform: rotate(7deg); }
             50% { transform: rotate(-7deg); }
             100% { transform: rotate(7deg); }
-        }
-
-        /* إضافة تأثير أنوار (حبل زينة) في الخلفية */
-        header::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 50px;
-            background-image: url('https://www.transparenttextures.com/patterns/black-thread.png'); /* حبل وهمي */
-            opacity: 0.3;
-        }
-
-        .ramadan-kareem {
-            color: var(--gold);
-            font-size: 1.2rem;
-            margin-bottom: 10px;
-            display: block;
-            letter-spacing: 3px;
         }
 
         .logo { 
@@ -158,14 +133,12 @@
             background: var(--gold); 
             color: black; 
             border-color: var(--gold);
-            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
         }
 
-        /* شبكة العروض والمنتجات */
+        /* شبكة المنتجات */
         .container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
 
-        /* تصميم كارت العرض الرمضاني */
         .deal-card { 
             background: white; 
             border-radius: 25px; 
@@ -174,14 +147,13 @@
             transition: 0.3s; 
             position: relative; 
             border: 1px solid var(--gold);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            cursor: pointer; /* جعل المؤشر يتغير عند الوقوف على الكارت */
         }
         .deal-card:hover { transform: translateY(-10px); }
         
         .deal-header { padding: 25px 20px; text-align: center; }
         .deal-header h2 { font-weight: 900; font-size: 1.5rem; color: #000; margin-bottom: 10px; }
 
-        /* بوكس السعر الأحمر المميز */
         .price-box { 
             background: var(--red-price); 
             color: white; 
@@ -190,17 +162,15 @@
             padding: 5px 20px; 
             border-radius: 12px; 
             margin: 10px 0; 
-            box-shadow: 0 4px 10px rgba(139, 0, 0, 0.3);
         }
         .price-box .num { font-size: 2.2rem; font-weight: 900; margin-left: 10px; }
-        .price-box .text { font-size: 0.8rem; border-right: 1px solid rgba(255,255,255,0.3); padding-right: 10px; line-height: 1.2; text-align: right; }
 
         .components { color: #8b0000; font-weight: bold; font-size: 1rem; margin: 15px 0; min-height: 50px; }
-        .deal-img { width: 100%; height: 240px; object-fit: cover; border-top: 1px solid #eee; border-bottom: 1px solid #eee; }
+        .deal-img { width: 100%; height: 240px; object-fit: cover; border-top: 1px solid #eee; }
         
         .deal-footer { 
             padding: 15px; 
-            background: #fff9e6; /* لون كريمي رمضاني */
+            background: #fff9e6; 
             text-align: center; 
             border-top: 1px dashed var(--gold); 
             font-size: 0.9rem; 
@@ -208,35 +178,142 @@
             font-weight: bold; 
         }
 
-        .empty-msg { grid-column: 1/-1; text-align: center; padding: 100px; opacity: 0.5; font-size: 1.2rem; }
+        /* تصميم النافذة المنبثقة الجديد */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 5000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            display: none; /* سيتم التحكم به عبر JS */
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* الكارت الأبيض (أو الغامق) اللي شايل البيانات */
+        .modal-card {
+            background: #1a1a1a; /* خلفية داكنة فخمة */
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            border: 2px solid var(--gold);
+            overflow: hidden;
+            position: relative;
+            animation: slideUp 0.4s ease-out;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* تقسيم المحتوى (صورة يمين وكلام شمال في الشاشات الكبيرة) */
+        .modal-body {
+            display: flex;
+            flex-direction: row-reverse; /* ليتماشى مع RTL */
+        }
+
+        .modal-img-container {
+            flex: 1;
+            min-height: 350px;
+        }
+
+        .modal-img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-text-content {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            text-align: right;
+        }
+
+        .gold-title {
+            color: var(--gold);
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        .separator {
+            width: 60px;
+            height: 3px;
+            background: var(--gold);
+            margin-bottom: 20px;
+            border-radius: 2px;
+        }
+
+        .product-desc {
+            color: #ddd;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .modal-footer-decoration {
+            font-weight: bold;
+            color: var(--gold);
+            border-top: 1px dashed #444;
+            padding-top: 15px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* زر القفل */
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: white;
+            font-size: 35px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            transition: 0.3s;
+        }
+        .close-modal:hover { color: var(--gold); }
+
+        /* موبايل: جعل الصورة فوق والكلام تحت */
+        @media (max-width: 768px) {
+            .modal-body { flex-direction: column; }
+            .modal-img-container { min-height: 250px; }
+            .modal-text-content { padding: 25px; }
+            .gold-title { font-size: 1.8rem; }
+        }
 
         /* زينة النجوم */
         .star { position: absolute; color: var(--gold); font-size: 10px; animation: blink 2s infinite; opacity: 0; }
         @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 
         @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr; }
             .logo { font-size: 3rem; letter-spacing: 5px; }
-            .lantern { width: 40px; right: 10px; }
+            .modal-content { max-width: 95%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- إضافة الفانوس -->
+
+
     <img src="https://cdn-icons-png.flaticon.com/512/2210/2210283.png" class="lantern" alt="Ramadan Lantern">
 
     <header>
-        <!-- الفانوس الحقيقي -->
         <div class="lantern-wrapper">
-            <!-- ده كود فانوس مرسوم برمجياً بيظهر بوضوح عالي جداً -->
             <svg class="fanoos-real" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
                 <path d="M50 5 L55 15 L45 15 Z" fill="#d4af37" />
                 <rect x="40" y="15" width="20" height="10" fill="#d4af37" />
                 <path d="M30 25 L70 25 L85 60 L70 110 L30 110 L15 60 Z" fill="#d4af37" stroke="#8b0000" stroke-width="2"/>
                 <rect x="35" y="110" width="30" height="15" fill="#d4af37" />
                 <path d="M30 125 L70 125 L75 140 L25 140 Z" fill="#d4af37" />
-                <!-- الجزء المنور جوه الفانوس -->
                 <circle cx="50" cy="65" r="15" fill="#fff7e6">
                     <animate attributeName="opacity" values="0.5;1;0.5" dur="2s" repeatCount="indefinite" />
                 </circle>
@@ -246,9 +323,7 @@
         <a href="info.html" style="position: absolute; top: 20px; left: 20px; color: var(--gold); text-decoration: none; font-size: 1.2rem; z-index: 100;">معلومات</a>
 
         <div class="logo">NAGAF</div>
-        <p style="color: var(--gold); margin-top: 10px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-            🌙 مـنيو شـهر الخـير 🌙
-        </p>
+        <p style="color: var(--gold); margin-top: 10px; font-weight: bold;">🌙 مـنيو شـهر الخـير 🌙</p>
     </header>
 
     <nav class="nav-container" id="catNav"></nav>
@@ -257,46 +332,58 @@
         <div class="grid" id="mainGrid"></div>
     </div>
 
+    <!-- النافذة المنبثقة للصور والتفاصيل -->
+    <div id="imageModal" class="modal" onclick="closeImage()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <span class="close-modal" onclick="closeImage()">&times;</span>
+
+            <div class="modal-body">
+                <!-- الجزء الخاص بالصورة -->
+                <div class="modal-img-container">
+                    <img id="imgFull" src="" alt="product">
+                </div>
+
+                <!-- الجزء الخاص بالنصوص -->
+                <div class="modal-text-content">
+                    <h2 id="caption" class="gold-title"></h2>
+                    <div class="separator"></div>
+                    <p id="description" class="product-desc"></p>
+                    <div class="modal-footer-decoration">🌙 صحة وهنا</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // متغيرات البيانات
         let offers = [];
         let sandwiches = [];
         let categories = [];
         let currentCat = "الكل";
         let allItems = [];
 
-        // جلب البيانات من Firebase مع التحديث في الوقت الفعلي
         function loadData() {
-            // مراقبة مجموعة العروض
             onSnapshot(collection(window.db, 'offers'), (snapshot) => {
                 offers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateAllItems();
-                renderCategories();
-                renderProducts();
             });
 
-            // مراقبة مجموعة الساندوتشات
             onSnapshot(collection(window.db, 'sandwiches'), (snapshot) => {
                 sandwiches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 updateAllItems();
-                renderCategories();
-                renderProducts();
             });
 
-            // مراقبة مجموعة الأقسام
             onSnapshot(collection(window.db, 'categories'), (snapshot) => {
                 categories = snapshot.docs.map(doc => doc.data().name);
                 updateAllItems();
-                renderCategories();
-                renderProducts();
             });
         }
 
         function updateAllItems() {
             allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
+            renderCategories();
+            renderProducts();
         }
 
-        // عرض الأقسام في الأعلى
         function renderCategories() {
             const nav = document.getElementById('catNav');
             let html = `<button class="cat-btn ${currentCat === 'الكل' ? 'active' : ''}" onclick="filterByCat('الكل')">الكل</button>`;
@@ -312,34 +399,49 @@
             renderProducts();
         }
 
-        // عرض المنتجات والعروض
         function renderProducts() {
             const grid = document.getElementById('mainGrid');
             const filtered = currentCat === "الكل" ? allItems : allItems.filter(p => p.category === currentCat);
 
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="empty-msg">لا توجد أصناف حالياً</div>`;
-                return;
-            }
+            grid.innerHTML = filtered.map(p => {
+                // تجهيز النصوص عشان علامات التنصيص متبوظش الكود
+                const safeName = p.name.replace(/'/g, "\\'");
+                const safeDesc = (p.components || "صحة وهنا على قلبكم 🌙").replace(/'/g, "\\'");
 
-            grid.innerHTML = filtered.map(p => `
-                <div class="deal-card">
-                    <div class="deal-header">
-                        <h2>${p.name}</h2>
-                        <div class="price-box">
-                            <span class="num">${p.price}</span>
-                            <span class="text">جنية</span>
+                return `
+                    <div class="deal-card" onclick="openDetails('${p.image}', '${safeName}', '${safeDesc}')">
+                        <div class="deal-header">
+                            <h2>${p.name}</h2>
+                            <div class="price-box">
+                                <span class="num">${p.price}</span>
+                                <span style="font-size:0.8rem; margin-right:5px;">جنية</span>
+                            </div>
                         </div>
-                        <div class="components">${p.components || ''}</div>
+                        <img src="${p.image}" class="deal-img" loading="lazy">
+                        <div style="padding: 10px; text-align: center; color: #b08d1a; font-size: 0.8rem;">
+                            إضغط للتفاصيل 🌙
+                        </div>
                     </div>
-                    <!-- إضافة loading="lazy" تجعل الصورة لا تحمل إلا عند ظهورها أمام المستخدم -->
-                    <img src="${p.image}" class="deal-img" loading="lazy" alt="${p.name}">
-                    <div class="deal-footer">🌙 صحة وهنا</div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        // إضافة نجوم عشوائية للخلفية
+        // --- وظائف المودال (تكبير الصورة) ---
+        function openDetails(img, title, desc) {
+            const modal = document.getElementById("imageModal");
+            document.getElementById("imgFull").src = img;
+            document.getElementById("caption").innerText = title;
+            document.getElementById("description").innerText = desc;
+
+            modal.style.display = "flex"; // استخدام flex للتوسيط
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeImage() {
+            document.getElementById("imageModal").style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+
         function createStars() {
             const header = document.querySelector('header');
             for (let i = 0; i < 15; i++) {
@@ -353,7 +455,6 @@
             }
         }
 
-        // تحميل البيانات عند بدء التشغيل
         loadData();
         createStars();
     </script>

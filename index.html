@@ -211,16 +211,16 @@
         }
 
         .modal-card {
-            background: #1a1a1a;
-            width: 100%;
-            max-width: 400px; /* عرض ممتاز للموبايل */
+            background: #1a1a1a; /* خلفية سوداء زي الصورة */
+            width: 95%;
+            max-width: 400px; /* العرض الطبيعي للموبايل */
             border-radius: 20px;
-            border: 1px solid var(--gold);
+            border: 1px solid var(--gold); /* إطار ذهبي */
             position: relative;
-            max-height: 85vh; /* ميبقاش أطول من الشاشة */
-            overflow-y: auto; /* لو الوصف طويل يعمل سكرول جوه الكارت */
+            overflow: hidden;
             display: flex;
-            flex-direction: column; /* صورة فوق وكلام تحت */
+            flex-direction: column; /* فوق بعض في الموبايل */
+            transition: 0.3s;
         }
 
         /* 3. تظبيط الصورة جوه المودال */
@@ -233,8 +233,7 @@
         .modal-img-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover; /* عشان الصورة متتمطش */
-            border-bottom: 2px solid var(--gold);
+            object-fit: cover; /* بيخلي الصورة تملى المساحة من غير ما تبوظ */
         }
 
         /* 4. تظبيط النصوص */
@@ -246,36 +245,34 @@
 
         .gold-title {
             color: var(--gold);
-            font-size: 1.4rem;
-            margin-bottom: 10px;
+            font-size: 1.6rem;
             font-weight: 900;
+            margin-bottom: 10px;
         }
 
         .product-desc {
             color: #eee;
-            font-size: 0.95rem;
-            line-height: 1.7;
-            margin-bottom: 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
         }
 
         /* 5. زر القفل (إكس) */
         .close-modal {
             position: absolute;
-            top: 10px;
-            right: 10px;
+            top: 15px;
+            right: 15px;
             background: var(--gold);
             color: black;
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
-            z-index: 10000;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 100; /* عشان يظهر فوق الصورة */
         }
 
         /* 6. تعديل اللوجو عشان ميزقش الشاشة بالعرض */
@@ -288,17 +285,22 @@
         /* لشاشات الكمبيوتر الكبيرة */
         @media (min-width: 768px) {
             .modal-card {
-                max-width: 750px;
-                flex-direction: row-reverse; /* صورة يمين وكلام شمال */
+                max-width: 800px; /* عرض أكبر للكمبيوتر */
+                flex-direction: row-reverse; /* الصورة يمين والكلام شمال */
+                height: 450px; /* ارتفاع ثابت عشان التناسق */
             }
+
             .modal-img-container {
-                width: 50%;
-                height: 400px;
+                width: 50% !important; /* الصورة تاخد نص العرض */
+                height: 100% !important;
             }
+
             .modal-text-content {
-                width: 50%;
-                padding: 40px;
-                text-align: right;
+                width: 50% !important; /* النص ياخد النص التاني */
+                padding: 40px !important;
+                display: flex;
+                flex-direction: column;
+                justify-content: center; /* سنترة الكلام في النص عمودياً */
             }
         }
 
@@ -465,6 +467,7 @@
         <!-- نجوم عشوائية -->
         <div class="header-stars" id="starContainer"></div>
 
+        <!-- الفانوس المتحرك (موجود عندك) -->
         <div class="lantern-wrapper">
             <svg class="fanoos-real" viewBox="0 0 100 150" xmlns="http://www.w3.org/2000/svg">
                 <path d="M50 5 L55 15 L45 15 Z" fill="#d4af37" />
@@ -478,7 +481,7 @@
             </svg>
         </div>
 
-        <a href="info.html" style="position: absolute; top: 25px; left: 20px; color: var(--gold); text-decoration: none; font-size: 0.9rem; z-index: 100; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 5px;">الفروع</a>
+        <a href="info.html" style="position: absolute; top: 25px; left: 20px; color: var(--gold); text-decoration: none; font-size: 0.9rem; z-index: 100; border: 1px solid var(--gold); padding: 5px 10px; border-radius: 5px;">معلومات</a>
 
         <div class="logo">NAGAF</div>
         <p style="color: var(--gold); margin-top: 10px; font-weight: bold; letter-spacing: 2px;">
@@ -492,24 +495,16 @@
         <div class="grid" id="mainGrid"></div>
     </div>
 
-    
+    <!-- النافذة المنبثقة للصور والتفاصيل -->
     <div id="imageModal" class="modal" onclick="closeImage()">
-        <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-card">
             <span class="close-modal" onclick="closeImage()">&times;</span>
-
-            <div class="modal-body">
-                <!-- الجزء الخاص بالصورة -->
-                <div class="modal-img-container">
-                    <img id="imgFull" src="" alt="product">
-                </div>
-
-                <!-- الجزء الخاص بالنصوص -->
-                <div class="modal-text-content">
-                    <h2 id="caption" class="gold-title"></h2>
-                    <div class="separator"></div>
-                    <p id="description" class="product-desc"></p>
-                    <div class="modal-footer-decoration">🌙 صحة وهنا</div>
-                </div>
+            <div class="modal-img-container">
+                <img id="imgFull" src="">
+            </div>
+            <div class="modal-text-content">
+                <h2 id="caption" class="gold-title"></h2>
+                <p id="description" class="product-desc"></p>
             </div>
         </div>
     </div>

@@ -52,7 +52,7 @@
                         </div>
                         <div class="info-row">
                             <span class="icon">📞</span>
-                            <span class="label">الحجز:</span>
+                            <span class="label">التواصل:</span>
                             <span>${b.phone}</span>
                         </div>
                         <a href="tel:${b.phone}" class="call-btn">اتصل الآن</a>
@@ -125,11 +125,63 @@
         }
         .call-btn:hover { background: white; }
 
+        /* أزرار التواصل السريع */
+        .quick-contact {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 1000;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--gold);
+            color: black;
+            padding: 12px 18px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .contact-item:hover {
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .contact-item img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .contact-text {
+            white-space: nowrap;
+        }
+
         /* تظبيط للموبايل */
         @media (max-width: 480px) {
             header h1 { font-size: 2rem; }
             .branch-card { padding: 20px; }
             .info-row { font-size: 0.9rem; }
+            .quick-contact {
+                bottom: 10px;
+                gap: 10px;
+            }
+            .contact-item {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+            .contact-item img {
+                width: 18px;
+                height: 18px;
+            }
         }
     </style>
 </head>
@@ -150,6 +202,21 @@
 
     <div class="branches-container" id="branchesGrid">
         <!-- الفروع تظهر هنا من قاعدة البيانات -->
+    </div>
+
+    <!-- أزرار التواصل السريع NAGAF -->
+    <div class="quick-contact">
+        <!-- زر الواتساب -->
+        <a href="https://wa.me/201119008397" class="contact-item whatsapp" target="_blank">
+            <span class="contact-text">اطلب واتساب</span>
+            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
+        </a>
+
+        <!-- زر الخط الساخن -->
+        <a href="tel:19971" class="contact-item hotline">
+            <span class="contact-text">19971</span>
+            <img src="https://cdn-icons-png.flaticon.com/512/3616/3616215.png" alt="Call">
+        </a>
     </div>
 
 </body>

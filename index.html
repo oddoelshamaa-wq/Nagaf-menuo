@@ -315,13 +315,10 @@
         // عرض المنتجات والعروض
         function renderProducts() {
             const grid = document.getElementById('mainGrid');
-
-            const filtered = currentCat === "الكل"
-                ? allItems
-                : allItems.filter(p => p.category === currentCat);
+            const filtered = currentCat === "الكل" ? allItems : allItems.filter(p => p.category === currentCat);
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="empty-msg">لا توجد عروض متوفرة حالياً في قسم ${currentCat}</div>`;
+                grid.innerHTML = `<div class="empty-msg">لا توجد أصناف حالياً</div>`;
                 return;
             }
 
@@ -329,22 +326,15 @@
                 <div class="deal-card">
                     <div class="deal-header">
                         <h2>${p.name}</h2>
-
                         <div class="price-box">
                             <span class="num">${p.price}</span>
-                            <span class="text">جنية<br>سعر العرض</span>
+                            <span class="text">جنية</span>
                         </div>
-
-                        <div class="components">
-                            ${p.components ? p.components.replace(/\n/g, '<br>') : 'وجبة رمضانية مميزة'}
-                        </div>
+                        <div class="components">${p.components || ''}</div>
                     </div>
-
-                    <img src="${p.image}" class="deal-img" loading="lazy">
-
-                    <div class="deal-footer">
-                        ${p.offer ? `🌙 ${p.offer}` : '🎁 صحة وهنا .. متاح الآن'}
-                    </div>
+                    <!-- إضافة loading="lazy" تجعل الصورة لا تحمل إلا عند ظهورها أمام المستخدم -->
+                    <img src="${p.image}" class="deal-img" loading="lazy" alt="${p.name}">
+                    <div class="deal-footer">🌙 صحة وهنا</div>
                 </div>
             `).join('');
         }

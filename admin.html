@@ -142,10 +142,9 @@
                 <h3>إضافة عرض وجبة</h3>
                 <input type="text" id="pName" placeholder="عنوان العرض (مثلاً: عرض الفطار الشعبي)">
                 <input type="number" id="pPrice" placeholder="السعر النهائي (مثلاً: 52)">
-                
-                <!-- الخانة الجديدة لمكونات الوجبة -->
-                <textarea id="pComponents" placeholder="مكونات العرض (مثلاً: فول + طعمية + بطاطس + عيش)" rows="3" 
-                style="width: 100%; padding: 12px; background: var(--accent); border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;"></textarea>
+
+                <label>وصف المنتج (المكونات):</label>
+                <textarea id="prodDesc" placeholder="اكتب مكونات المنتج هنا..." rows="3" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Cairo';"></textarea>
 
                 <select id="pCat">
                     <option value="">اختر القسم...</option>
@@ -174,7 +173,10 @@
                 <h3>إضافة ساندوتش</h3>
                 <input type="text" id="sName" placeholder="اسم الساندوتش">
                 <input type="number" id="sPrice" placeholder="السعر (ج.م)">
-                
+
+                <label>وصف الساندوتش (المكونات):</label>
+                <textarea id="sandwichDesc" placeholder="اكتب مكونات الساندوتش هنا..." rows="3" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Cairo';"></textarea>
+
                 <select id="sCat">
                     <option value="">اختر القسم...</option>
                 </select>
@@ -329,11 +331,35 @@
             }
         }
 
+        // دالة سحرية لتصغير حجم الصورة قبل الرفع
+        function compressImage(file, callback) {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function (event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400; // تصغير العرض لـ 400 بكسل فقط
+                    const scaleSize = MAX_WIDTH / img.width;
+                    canvas.width = MAX_WIDTH;
+                    canvas.height = img.height * scaleSize;
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    // تحويل الصورة لـ JPEG بجودة 70% (خفيفة جداً)
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                    callback(dataUrl);
+                };
+            };
+        }
+
         // إضافة منتج
         async function addProduct() {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const components = document.getElementById('pComponents').value;
+            const components = document.getElementById('prodDesc').value;
             const category = document.getElementById('pCat').value;
             const offer = document.getElementById('pOffer').value;
             const visible = document.getElementById('oVisible').checked;
@@ -341,47 +367,49 @@
 
             if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
+            // تصغير الصورة ثم رفعها
+            compressImage(imgFile, async function(compressedBase64) {
                 try {
-                    await addDoc(collection(window.db, 'offers'), { name, price, components, category, offer, visible, image: e.target.result });
-                    alert("تمت الإضافة بنجاح");
+                    await addDoc(collection(window.db, 'offers'), {
+                        name, price, components, category, offer, visible,
+                        image: compressedBase64 // الصورة المضغوطة
+                    });
+                    alert("تمت الإضافة بسرعة!");
                     document.getElementById('previewArea').style.display = 'none';
-                    ['pName','pPrice','pComponents','pOffer','pImage'].forEach(id => document.getElementById(id).value = '');
+                    ['pName','pPrice','prodDesc','pOffer','pImage'].forEach(id => document.getElementById(id).value = '');
                     document.getElementById('oVisible').checked = true;
                     loadData();
                 } catch (error) {
                     console.error("Error adding product:", error);
                     alert("حدث خطأ في إضافة المنتج");
                 }
-            };
-            reader.readAsDataURL(imgFile);
+            });
         }
 
         // إضافة ساندوتش
         async function addSandwich() {
             const name = document.getElementById('sName').value;
             const price = document.getElementById('sPrice').value;
+            const components = document.getElementById('sandwichDesc').value;
             const category = document.getElementById('sCat').value;
             const offer = document.getElementById('sOffer').value;
             const imgFile = document.getElementById('sImage').files[0];
 
             if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
+            // تصغير الصورة ثم رفعها
+            compressImage(imgFile, async function(compressedBase64) {
                 try {
-                    await addDoc(collection(window.db, 'sandwiches'), { name, price, category, offer, image: e.target.result });
-                    alert("تمت الإضافة بنجاح");
+                    await addDoc(collection(window.db, 'sandwiches'), { name, price, components, category, offer, image: compressedBase64 });
+                    alert("تمت الإضافة بسرعة!");
                     document.getElementById('previewArea').style.display = 'none';
-                    ['sName','sPrice','sOffer','sImage'].forEach(id => document.getElementById(id).value = '');
+                    ['sName','sPrice','sandwichDesc','sOffer','sImage'].forEach(id => document.getElementById(id).value = '');
                     loadData();
                 } catch (error) {
                     console.error("Error adding sandwich:", error);
                     alert("حدث خطأ في إضافة الساندوتش");
                 }
-            };
-            reader.readAsDataURL(imgFile);
+            });
         }
 
         async function deleteItem(type, index) {
@@ -447,6 +475,7 @@
                         <span class="tag">${s.category}</span>
                         <h4>${s.name}</h4>
                         <p>💰 ${s.price} ج.م</p>
+                        ${s.components ? `<p>🧂 ${s.components}</p>` : ''}
                     </div>
                 </div>
             `).join('') : '<div class="empty-msg">لا يوجد ساندوتشات</div>';

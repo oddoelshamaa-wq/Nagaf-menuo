@@ -6,31 +6,32 @@
     <title>NAGAF - منيو رمضان</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-      import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-      // إعدادات Firebase الخاصة بك
-      const firebaseConfig = {
-        apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
-        authDomain: "nagaf-menuo.firebaseapp.com",
-        projectId: "nagaf-menuo",
-        storageBucket: "nagaf-menuo.firebasestorage.app",
-        messagingSenderId: "1049134380868",
-        appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
-        measurementId: "G-YTSRN50K1G"
-      };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
+    authDomain: "nagaf-menuo.firebaseapp.com",
+    projectId: "nagaf-menuo",
+    storageBucket: "nagaf-menuo.firebasestorage.app",
+    messagingSenderId: "1049134380868",
+    appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
+    measurementId: "G-YTSRN50K1G"
+  };
 
-      // تهيئة Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app); // إضافة Analytics هنا
-      const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-      // جعل قاعدة البيانات متاحة لبقية السكريبت
-      window.db = db;
-    </script>
+  // جعل الدوال متاحة لصفحة index
+  window.db = db;
+  window.collection = collection;
+  window.onSnapshot = onSnapshot;
+
+  console.log("✅ Firebase connected");
+  loadData(); // استدعي الدالة هنا داخل الموديول لضمان أن Firebase جاهز
+</script>
 
     <style>
         :root { 
@@ -264,34 +265,35 @@
         let currentCat = "الكل";
         let allItems = [];
 
-        // جلب البيانات من Firebase
-        async function loadData() {
-            try {
-                const offersSnapshot = await getDocs(collection(window.db, 'offers'));
-                offers = offersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                const sandwichesSnapshot = await getDocs(collection(window.db, 'sandwiches'));
-                sandwiches = sandwichesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-                const categoriesSnapshot = await getDocs(collection(window.db, 'categories'));
-                categories = categoriesSnapshot.docs.map(doc => doc.data().name);
-
-                allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
-
+        // جلب البيانات من Firebase مع التحديث في الوقت الفعلي
+        function loadData() {
+            // مراقبة مجموعة العروض
+            onSnapshot(collection(window.db, 'offers'), (snapshot) => {
+                offers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateAllItems();
                 renderCategories();
                 renderProducts();
-                createStars();
-            } catch (error) {
-                console.error("Error loading data:", error);
-                // Fallback to localStorage if Firebase fails
-                offers = JSON.parse(localStorage.getItem('nagaf_offers')) || [];
-                sandwiches = JSON.parse(localStorage.getItem('nagaf_sandwiches')) || [];
-                categories = JSON.parse(localStorage.getItem('nagaf_cats')) || [];
-                allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
+            });
+
+            // مراقبة مجموعة الساندوتشات
+            onSnapshot(collection(window.db, 'sandwiches'), (snapshot) => {
+                sandwiches = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                updateAllItems();
                 renderCategories();
                 renderProducts();
-                createStars();
-            }
+            });
+
+            // مراقبة مجموعة الأقسام
+            onSnapshot(collection(window.db, 'categories'), (snapshot) => {
+                categories = snapshot.docs.map(doc => doc.data().name);
+                updateAllItems();
+                renderCategories();
+                renderProducts();
+            });
+        }
+
+        function updateAllItems() {
+            allItems = [...offers.filter(o => o.visible !== false), ...sandwiches];
         }
 
         // عرض الأقسام في الأعلى
@@ -338,7 +340,7 @@
                         </div>
                     </div>
 
-                    <img src="${p.image}" class="deal-img">
+                    <img src="${p.image}" class="deal-img" loading="lazy">
 
                     <div class="deal-footer">
                         ${p.offer ? `🌙 ${p.offer}` : '🎁 صحة وهنا .. متاح الآن'}
@@ -363,6 +365,7 @@
 
         // تحميل البيانات عند بدء التشغيل
         loadData();
+        createStars();
     </script>
 </body>
 </html>

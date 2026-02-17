@@ -121,6 +121,12 @@
             cursor: pointer; font-size: 0.8rem; z-index: 10;
         }
 
+        .edit-btn {
+            position: absolute; top: 5px; left: 5px; background: rgba(0,123,255,0.8);
+            border: none; color: white; width: 25px; height: 25px; border-radius: 50%;
+            cursor: pointer; font-size: 0.8rem; z-index: 10;
+        }
+
         .empty-msg { text-align: center; grid-column: 1/-1; opacity: 0.5; padding: 50px; border: 2px dashed #333; border-radius: 20px; }
 
         #previewArea { margin-top: 20px; padding: 10px; border: 1px dashed var(--gold); border-radius: 10px; display: none; }
@@ -162,6 +168,15 @@
                 <input type="text" id="pName" placeholder="عنوان العرض (مثلاً: عرض الفطار الشعبي)">
                 <input type="number" id="pPrice" placeholder="السعر النهائي (مثلاً: 52)">
 
+                <!-- قسم الخيارات المتعددة للعروض -->
+                <div id="pChoicesContainer" style="margin-bottom: 15px;">
+                    <label style="font-size: 0.8rem; color: var(--gold);">خيارات الوجبة (أرز، عيش، إلخ):</label>
+                    <div class="choice-row" style="display: flex; gap: 5px; margin-top: 5px;">
+                        <input type="text" class="p-choice-input" placeholder="مثلاً: أرز أبيض أو بسمتي" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('pChoicesContainer', 'p-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">+</button>
+                    </div>
+                </div>
+
                 <label>وصف المنتج (المكونات):</label>
                 <textarea id="prodDesc" placeholder="اكتب مكونات المنتج هنا..." rows="3" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Cairo';"></textarea>
 
@@ -192,6 +207,7 @@
                 <h3>إضافة ساندوتش</h3>
                 <input type="text" id="sName" placeholder="اسم الساندوتش">
                 <input type="number" id="sPrice" placeholder="السعر (ج.م)">
+                <input type="text" id="sChoices" placeholder="خيارات (مثلاً: عيش شامي أو بلدي)">
 
                 <label>وصف الساندوتش (المكونات):</label>
                 <textarea id="sandwichDesc" placeholder="اكتب مكونات الساندوتش هنا..." rows="3" style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #ccc; font-family: 'Cairo';"></textarea>
@@ -258,6 +274,8 @@
         let products = [];
         let sandwiches = [];
         let categories = [];
+
+        let editingId = null; // متغير لحفظ الـ ID الخاص بالمنتج اللي بنعدله حالياً
 
         // جلب البيانات من Firebase
         async function loadData() {
@@ -384,11 +402,33 @@
         async function addProduct() {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
+            const choices = Array.from(document.querySelectorAll('.p-choice-input')).map(input => input.value).filter(val => val.trim() !== '').join('، ');
             const components = document.getElementById('prodDesc').value;
             const category = document.getElementById('pCat').value;
             const offer = document.getElementById('pOffer').value;
             const visible = document.getElementById('oVisible').checked;
             const imgFile = document.getElementById('pImage').files[0];
+
+            if (editingId) {
+                // Update
+                try {
+                    await updateDoc(doc(window.db, 'offers', editingId), {
+                        name, price, choices, components, category, offer, visible
+                    });
+                    alert("تم التحديث!");
+                    editingId = null;
+                    // Reset form
+                    ['pName','pPrice','prodDesc','pOffer'].forEach(id => document.getElementById(id).value = '');
+                    document.querySelectorAll('.p-choice-input').forEach(input => input.value = '');
+                    document.getElementById('oVisible').checked = true;
+                    document.querySelector('#offersTab .save-btn').innerText = '✨ نشر العرض في المنيو';
+                    loadData();
+                } catch (error) {
+                    console.error("Error updating product:", error);
+                    alert("حدث خطأ في تحديث المنتج");
+                }
+                return;
+            }
 
             if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
 
@@ -396,12 +436,13 @@
             compressImage(imgFile, async function(compressedBase64) {
                 try {
                     await addDoc(collection(window.db, 'offers'), {
-                        name, price, components, category, offer, visible,
+                        name, price, choices, components, category, offer, visible,
                         image: compressedBase64 // الصورة المضغوطة
                     });
                     alert("تمت الإضافة بسرعة!");
                     document.getElementById('previewArea').style.display = 'none';
                     ['pName','pPrice','prodDesc','pOffer','pImage'].forEach(id => document.getElementById(id).value = '');
+                    document.querySelectorAll('.p-choice-input').forEach(input => input.value = '');
                     document.getElementById('oVisible').checked = true;
                     loadData();
                 } catch (error) {
@@ -415,20 +456,40 @@
         async function addSandwich() {
             const name = document.getElementById('sName').value;
             const price = document.getElementById('sPrice').value;
+            const choices = document.getElementById('sChoices').value;
             const components = document.getElementById('sandwichDesc').value;
             const category = document.getElementById('sCat').value;
             const offer = document.getElementById('sOffer').value;
             const imgFile = document.getElementById('sImage').files[0];
+
+            if (editingId) {
+                // Update
+                try {
+                    await updateDoc(doc(window.db, 'sandwiches', editingId), {
+                        name, price, choices, components, category, offer
+                    });
+                    alert("تم التحديث!");
+                    editingId = null;
+                    // Reset form
+                    ['sName','sPrice','sChoices','sandwichDesc','sOffer'].forEach(id => document.getElementById(id).value = '');
+                    document.querySelector('#sandwichesTab .save-btn').innerText = '🥪 إضافة الساندوتش';
+                    loadData();
+                } catch (error) {
+                    console.error("Error updating sandwich:", error);
+                    alert("حدث خطأ في تحديث الساندوتش");
+                }
+                return;
+            }
 
             if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
 
             // تصغير الصورة ثم رفعها
             compressImage(imgFile, async function(compressedBase64) {
                 try {
-                    await addDoc(collection(window.db, 'sandwiches'), { name, price, components, category, offer, image: compressedBase64 });
+                    await addDoc(collection(window.db, 'sandwiches'), { name, price, choices, components, category, offer, image: compressedBase64 });
                     alert("تمت الإضافة بسرعة!");
                     document.getElementById('previewArea').style.display = 'none';
-                    ['sName','sPrice','sandwichDesc','sOffer','sImage'].forEach(id => document.getElementById(id).value = '');
+                    ['sName','sPrice','sChoices','sandwichDesc','sOffer','sImage'].forEach(id => document.getElementById(id).value = '');
                     loadData();
                 } catch (error) {
                     console.error("Error adding sandwich:", error);
@@ -485,6 +546,7 @@
             pList.innerHTML = products.length ? products.map((p) => `
                 <div class="item-card">
                     <button class="delete-btn" onclick="deleteItem('p', '${p.id}')">×</button>
+                    <button class="edit-btn" onclick="editItem('p', '${p.id}')">✏️</button>
                     <img src="${p.image}">
                     <div class="item-info">
                         <span class="tag">${p.category}</span>
@@ -500,6 +562,7 @@
             sList.innerHTML = sandwiches.length ? sandwiches.map((s) => `
                 <div class="item-card">
                     <button class="delete-btn" onclick="deleteItem('s', '${s.id}')">×</button>
+                    <button class="edit-btn" onclick="editItem('s', '${s.id}')">✏️</button>
                     <img src="${s.image}">
                     <div class="item-info">
                         <span class="tag">${s.category}</span>
@@ -518,6 +581,82 @@
         function logout() {
             localStorage.removeItem('admin_logged_in');
             window.location.href = 'login.html';
+        }
+
+        // إضافة حقل خيار جديد
+        function addChoiceField(containerId, className) {
+            const container = document.getElementById(containerId);
+            const newRow = document.createElement('div');
+            newRow.className = 'choice-row';
+            newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
+            newRow.innerHTML = `
+                <input type="text" class="${className}" placeholder="مثلاً: أرز أبيض أو بسمتي" style="margin-bottom: 5px;">
+                <button type="button" onclick="removeChoiceField(this)" style="background: #dc3545; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">-</button>
+            `;
+            container.appendChild(newRow);
+        }
+
+        // إزالة حقل خيار
+        function removeChoiceField(button) {
+            button.parentElement.remove();
+        }
+
+        function editItem(type, id) {
+            editingId = id;
+            if (type === 'p') {
+                const product = products.find(p => p.id === id);
+                if (!product) return;
+                // Populate form
+                document.getElementById('pName').value = product.name;
+                document.getElementById('pPrice').value = product.price;
+                document.getElementById('prodDesc').value = product.components || '';
+                document.getElementById('pCat').value = product.category;
+                document.getElementById('pOffer').value = product.offer || '';
+                document.getElementById('oVisible').checked = product.visible !== false;
+                // For choices, split and populate inputs
+                const choicesArray = product.choices ? product.choices.split('، ') : [];
+                // Clear existing choice inputs
+                const container = document.getElementById('pChoicesContainer');
+                const existingRows = container.querySelectorAll('.choice-row');
+                existingRows.forEach(row => row.remove());
+                // Add new rows
+                choicesArray.forEach(choice => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'choice-row';
+                    newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
+                    newRow.innerHTML = `
+                        <input type="text" class="p-choice-input" value="${choice}" style="margin-bottom: 5px;">
+                        <button type="button" onclick="removeChoiceField(this)" style="background: #dc3545; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">-</button>
+                    `;
+                    container.appendChild(newRow);
+                });
+                // If no choices, add one empty
+                if (choicesArray.length === 0) {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'choice-row';
+                    newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
+                    newRow.innerHTML = `
+                        <input type="text" class="p-choice-input" placeholder="مثلاً: أرز أبيض أو بسمتي" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('pChoicesContainer', 'p-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">+</button>
+                    `;
+                    container.appendChild(newRow);
+                }
+                // Switch to offers tab
+                showTab('offersTab', document.querySelector('.tab-btn.active'));
+                // Change button text
+                document.querySelector('#offersTab .save-btn').innerText = '🔄 تحديث العرض';
+            } else if (type === 's') {
+                const sandwich = sandwiches.find(s => s.id === id);
+                if (!sandwich) return;
+                document.getElementById('sName').value = sandwich.name;
+                document.getElementById('sPrice').value = sandwich.price;
+                document.getElementById('sChoices').value = sandwich.choices || '';
+                document.getElementById('sandwichDesc').value = sandwich.components || '';
+                document.getElementById('sCat').value = sandwich.category;
+                document.getElementById('sOffer').value = sandwich.offer || '';
+                showTab('sandwichesTab', document.querySelector('.tab-btn.active'));
+                document.querySelector('#sandwichesTab .save-btn').innerText = '🔄 تحديث الساندوتش';
+            }
         }
 
     </script>

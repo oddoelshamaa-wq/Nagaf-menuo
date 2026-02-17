@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NAGAF | معلوماتنا</title>
+    <title>NAGAF | فروعنا</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     
     <!-- Firebase SDK -->
@@ -25,7 +25,6 @@
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
 
-      // دالة جلب الفروع
       function loadBranches() {
         const grid = document.getElementById('branchesGrid');
         
@@ -50,168 +49,65 @@
                             <span class="label">المواعيد:</span>
                             <span>${b.time}</span>
                         </div>
+                        
+                        <div class="branch-actions">
+                            <!-- زر اللوكيشن بيظهر بس لو الرابط موجود -->
+                            ${b.locationUrl ? `
+                                <a href="${b.locationUrl}" target="_blank" class="map-btn">
+                                    🗺️ فتح اللوكيشن (Google Maps)
+                                </a>
+                            ` : ''}
+                            <a href="tel:19971" class="call-btn-simple">📞 اتصل بالخط الساخن</a>
+                        </div>
                     </div>
                 `;
             }).join('');
         });
       }
-
       loadBranches();
     </script>
 
     <style>
         :root { --gold: #d4af37; --black: #050505; }
-        
-        /* منع أي خروج عن حدود الشاشة بالعرض */
-        html, body { 
-            margin: 0; padding: 0; box-sizing: border-box; 
-            font-family: 'Cairo', sans-serif; background: var(--black); 
-            color: white; overflow-x: hidden; width: 100%;
-        }
-
-        .orb { position: fixed; width: 400px; height: 400px; background: var(--gold); filter: blur(150px); opacity: 0.1; z-index: -1; border-radius: 50%; }
-
-        nav { 
-            padding: 15px; display: flex; justify-content: center; gap: 20px; 
-            background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--gold);
-            position: sticky; top: 0; z-index: 1000;
-        }
-        nav a { color: white; text-decoration: none; font-weight: bold; font-size: 0.9rem; transition: 0.3s; }
-        nav a:hover { color: var(--gold); }
-
+        html, body { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; background: var(--black); color: white; overflow-x: hidden; width: 100%; }
+        nav { padding: 15px; display: flex; justify-content: center; gap: 20px; background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--gold); position: sticky; top: 0; z-index: 1000; }
+        nav a { color: white; text-decoration: none; font-weight: bold; font-size: 0.9rem; }
         header { text-align: center; padding: 40px 20px; }
-        header h1 { font-size: 2.5rem; color: var(--gold); margin-bottom: 10px; font-weight: 900; }
+        header h1 { font-size: 2.5rem; color: var(--gold); font-weight: 900; }
 
-        .branches-container { 
-            padding: 20px; 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 20px; 
-            max-width: 1200px; 
-            margin: 0 auto; 
-        }
-
-        .branch-card {
-            background: rgba(255,255,255,0.05); 
-            border: 1px solid #333;
-            border-radius: 20px; 
-            padding: 25px; 
-            transition: 0.3s;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .branch-card:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .branches-container { padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
         
-        .branch-card h2 { 
-            color: var(--gold); font-size: 1.5rem; margin-bottom: 20px; 
-            border-right: 4px solid var(--gold); padding-right: 10px; 
-        }
+        .branch-card { background: rgba(255,255,255,0.05); border: 1px solid #333; border-radius: 20px; padding: 25px; transition: 0.3s; }
+        .branch-card h2 { color: var(--gold); font-size: 1.5rem; margin-bottom: 20px; border-right: 4px solid var(--gold); padding-right: 10px; }
         
-        .info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; font-size: 1rem; }
-        .info-row span.label { color: var(--gold); font-weight: bold; white-space: nowrap; }
-        .info-row .icon { font-size: 1.2rem; }
+        .info-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 15px; }
+        .info-row span.label { color: var(--gold); font-weight: bold; }
 
-        .call-btn {
-            display: block; text-align: center; margin-top: 10px; background: var(--gold);
-            color: black; padding: 12px; border-radius: 12px;
-            text-decoration: none; font-weight: bold; transition: 0.3s;
+        /* تنسيق أزرار الأكشن */
+        .branch-actions { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+        
+        .map-btn { 
+            background: var(--gold); color: black; padding: 12px; border-radius: 12px; 
+            text-decoration: none; text-align: center; font-weight: bold; font-size: 0.9rem;
+            transition: 0.3s; border: 1px solid var(--gold);
         }
-        .call-btn:hover { background: white; }
+        .map-btn:hover { background: transparent; color: var(--gold); }
 
-        /* أزرار التواصل السريع */
-        .quick-contact {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            z-index: 1000;
-        }
-
-        .contact-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--gold);
-            color: black;
-            padding: 12px 18px;
-            border-radius: 25px;
-            text-decoration: none;
-            font-weight: bold;
-            font-size: 0.9rem;
-            transition: 0.3s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-
-        .contact-item:hover {
-            background: white;
-            transform: translateY(-2px);
-        }
-
-        .contact-item img {
-            width: 20px;
-            height: 20px;
-        }
-
-        .contact-text {
-            white-space: nowrap;
-        }
-
-        /* تظبيط للموبايل */
-        @media (max-width: 480px) {
-            header h1 { font-size: 2rem; }
-            .branch-card { padding: 20px; }
-            .info-row { font-size: 0.9rem; }
-            .quick-contact {
-                bottom: 10px;
-                gap: 10px;
-            }
-            .contact-item {
-                padding: 10px 15px;
-                font-size: 0.8rem;
-            }
-            .contact-item img {
-                width: 18px;
-                height: 18px;
-            }
+        .call-btn-simple { 
+            background: #222; color: white; padding: 12px; border-radius: 12px; 
+            text-decoration: none; text-align: center; font-weight: bold; font-size: 0.9rem;
+            border: 1px solid #444;
         }
     </style>
 </head>
 <body>
-
-    <div class="orb" style="top: -100px; left: -100px;"></div>
-    <div class="orb" style="bottom: -100px; right: -100px;"></div>
-
     <nav>
         <a href="index.html">🏠 المنيو الرئيسي</a>
         <a href="info.html" style="color:var(--gold)">📍 فروعنا</a>
     </nav>
-
     <header>
         <h1>فروع NAGAF</h1>
-        <p>نورونا في فروعنا .. دايماً في خدمتكم ✨</p>
     </header>
-
-    <div class="branches-container" id="branchesGrid">
-        <!-- الفروع تظهر هنا من قاعدة البيانات -->
-    </div>
-
-    <!-- أزرار التواصل السريع NAGAF -->
-    <div class="quick-contact">
-        <!-- زر الواتساب -->
-        <a href="https://wa.me/201119008397" class="contact-item whatsapp" target="_blank">
-            <span class="contact-text">اطلب واتساب</span>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp">
-        </a>
-
-        <!-- زر الخط الساخن -->
-        <a href="tel:19971" class="contact-item hotline">
-            <span class="contact-text">19971</span>
-            <img src="https://cdn-icons-png.flaticon.com/512/3616/3616215.png" alt="Call">
-        </a>
-    </div>
-
+    <div class="branches-container" id="branchesGrid"></div>
 </body>
 </html>

@@ -56,10 +56,11 @@
 
         .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 
-        .tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
-        .tab-btn { 
-            padding: 12px 25px; border: 1px solid var(--gold); background: transparent; 
+        .tabs { overflow-x: auto; white-space: nowrap; display: flex; padding-bottom: 10px; -webkit-overflow-scrolling: touch; gap: 10px; margin-bottom: 30px; }
+        .tab-btn {
+            padding: 12px 25px; border: 1px solid var(--gold); background: transparent;
             color: var(--gold); cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s;
+            flex: 0 0 auto;
         }
         .tab-btn.active { background: var(--gold); color: black; }
 
@@ -68,14 +69,30 @@
         
         @media (max-width: 768px) { .content-section.active { grid-template-columns: 1fr; } }
 
+        @media (max-width: 600px) {
+            .display-list {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .item-card img {
+                height: 100px;
+            }
+
+            .item-info h4 {
+                font-size: 0.8rem;
+            }
+        }
+
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .form-box { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; height: fit-content; position: sticky; top: 100px; }
+        .form-box { background: var(--card); padding: 15px; border-radius: 20px; border: 1px solid #333; height: fit-content; position: static; }
         .form-box h3 { color: var(--gold); margin-bottom: 20px; border-right: 3px solid var(--gold); padding-right: 10px; }
         
-        input, select, textarea { 
-            width: 100%; padding: 12px; margin-bottom: 15px; background: var(--accent); 
+        input, select, textarea {
+            width: 100%; padding: 12px; margin-bottom: 15px; background: var(--accent);
             border: 1px solid #444; color: white; border-radius: 8px; outline: none;
+            font-size: 16px !important;
         }
         input:focus { border-color: var(--gold); }
         
@@ -114,6 +131,8 @@
             display: flex; gap: 15px; background: rgba(0, 0, 0, 0.7);
             padding: 10px 20px; border-radius: 50px; backdrop-filter: blur(10px);
             border: 1px solid #333; z-index: 1000;
+            width: 90%;
+            justify-content: space-around;
         }
         .btn-visit { background: #1a1a1a; color: #4a90e2; text-decoration: none; padding: 8px 18px; border-radius: 12px; font-weight: bold; border: 1px solid #333; }
         .btn-navigate { background: #ffcc00; color: #000; border: 2px solid #fff; padding: 8px 30px; border-radius: 20px; font-weight: 900; cursor: pointer; }
@@ -215,7 +234,6 @@
                 <input type="text" id="bName" placeholder="اسم الفرع">
                 <input type="text" id="bAddress" placeholder="العنوان">
                 <input type="text" id="bTime" placeholder="ساعات العمل">
-                <input type="text" id="bPhone" placeholder="رقم الهاتف">
                 <button class="save-btn" onclick="addBranch()">🏛️ إضافة الفرع</button>
             </div>
 
@@ -317,13 +335,12 @@
             const name = document.getElementById('bName').value;
             const address = document.getElementById('bAddress').value;
             const time = document.getElementById('bTime').value;
-            const phone = document.getElementById('bPhone').value;
 
             if(!name) return alert("يرجى كتابة اسم الفرع");
 
             try {
-                await addDoc(collection(window.db, 'branches'), { name, address, time, phone });
-                ['bName','bAddress','bTime','bPhone'].forEach(id => document.getElementById(id).value = '');
+                await addDoc(collection(window.db, 'branches'), { name, address, time });
+                ['bName','bAddress','bTime'].forEach(id => document.getElementById(id).value = '');
                 loadData();
             } catch (error) {
                 console.error("Error adding branch:", error);

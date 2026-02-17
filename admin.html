@@ -232,8 +232,10 @@
             <div class="form-box">
                 <h3>إضافة فرع جديد</h3>
                 <input type="text" id="bName" placeholder="اسم الفرع">
-                <input type="text" id="bAddress" placeholder="العنوان">
-                <input type="text" id="bTime" placeholder="ساعات العمل">
+                <input type="text" id="bAddress" placeholder="العنوان بالتفصيل">
+                <input type="text" id="bTime" placeholder="ساعات العمل (مثلاً من 4 عصراً)">
+                <!-- خانة اللوكيشن الجديدة -->
+                <input type="text" id="bLocation" placeholder="رابط جوجل ماب (Google Maps)">
                 <button class="save-btn" onclick="addBranch()">🏛️ إضافة الفرع</button>
             </div>
 
@@ -330,21 +332,27 @@
             }
         }
 
-        // إضافة فرع
         async function addBranch() {
             const name = document.getElementById('bName').value;
             const address = document.getElementById('bAddress').value;
             const time = document.getElementById('bTime').value;
+            const locationUrl = document.getElementById('bLocation').value; // الرابط
 
-            if(!name) return alert("يرجى كتابة اسم الفرع");
+            if(!name || !locationUrl) return alert("يرجى كتابة اسم الفرع ورابط اللوكيشن على الأقل");
 
             try {
-                await addDoc(collection(window.db, 'branches'), { name, address, time });
-                ['bName','bAddress','bTime'].forEach(id => document.getElementById(id).value = '');
+                await addDoc(collection(window.db, 'branches'), {
+                    name,
+                    address,
+                    time,
+                    locationUrl // حفظ الرابط
+                });
+
+                ['bName','bAddress','bTime','bLocation'].forEach(id => document.getElementById(id).value = '');
+                alert("تم إضافة الفرع باللوكيشن ✅");
                 loadData();
             } catch (error) {
-                console.error("Error adding branch:", error);
-                alert("حدث خطأ في إضافة الفرع");
+                console.error("Error:", error);
             }
         }
 
@@ -455,14 +463,19 @@
                 </div>
             `).join('');
 
-            // رندر الفروع
+            // رندر الفروع في لوحة التحكم
             const bList = document.getElementById('bList');
             bList.innerHTML = branches.length ? branches.map((b) => `
                 <div class="item-card">
                     <button class="delete-btn" onclick="deleteItem('b', '${b.id}')">×</button>
                     <div class="item-info">
                         <h4>${b.name}</h4>
-                        <p>📍 ${b.address}</p>
+                        <p>📍 العنوان: ${b.address}</p>
+                        <p>⏰ المواعيد: ${b.time}</p>
+                        <!-- السطر ده هيخليك تشوف اللوكيشن اللي ضفته -->
+                        <p style="font-size: 0.7rem; color: #4a90e2; word-break: break-all;">
+                            🔗 الرابط: ${b.locationUrl ? 'تمت إضافة اللوكيشن ✅' : '❌ لا يوجد رابط'}
+                        </p>
                     </div>
                 </div>
             `).join('') : '<div class="empty-msg">لا يوجد فروع</div>';

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAGAF - Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
+      import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+
+      // إعدادات Firebase الخاصة بك
+      const firebaseConfig = {
+        apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
+        authDomain: "nagaf-menuo.firebaseapp.com",
+        projectId: "nagaf-menuo",
+        storageBucket: "nagaf-menuo.firebasestorage.app",
+        messagingSenderId: "1049134380868",
+        appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
+        measurementId: "G-YTSRN50K1G"
+      };
+
+      // تهيئة Firebase
+      const app = initializeApp(firebaseConfig);
+      const analytics = getAnalytics(app); // إضافة Analytics هنا
+      const db = getFirestore(app);
+
+      // جعل قاعدة البيانات متاحة لبقية السكريبت
+      window.db = db;
+    </script>
+
+    <style>
+        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; --accent: #222; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; }
+        
+        body { background-color: var(--bg); color: white; padding-bottom: 80px; }
+
+        header { 
+            background: linear-gradient(to left, #000, var(--card));
+            padding: 20px 5%; border-bottom: 1px solid var(--gold);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        header h1 { font-weight: 900; color: var(--gold); letter-spacing: 5px; }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 30px; flex-wrap: wrap; }
+        .tab-btn { 
+            padding: 12px 25px; border: 1px solid var(--gold); background: transparent; 
+            color: var(--gold); cursor: pointer; border-radius: 8px; font-weight: bold; transition: 0.3s;
+        }
+        .tab-btn.active { background: var(--gold); color: black; }
+
+        .content-section { display: none; animation: fadeIn 0.5s ease; }
+        .content-section.active { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; }
+        
+        @media (max-width: 768px) { .content-section.active { grid-template-columns: 1fr; } }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .form-box { background: var(--card); padding: 25px; border-radius: 20px; border: 1px solid #333; height: fit-content; position: sticky; top: 100px; }
+        .form-box h3 { color: var(--gold); margin-bottom: 20px; border-right: 3px solid var(--gold); padding-right: 10px; }
+        
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin-bottom: 15px; background: var(--accent); 
+            border: 1px solid #444; color: white; border-radius: 8px; outline: none;
+        }
+        input:focus { border-color: var(--gold); }
+        
+        button.save-btn { 
+            width: 100%; padding: 15px; background: var(--gold); border: none; 
+            color: black; font-weight: 900; border-radius: 8px; cursor: pointer; transition: 0.3s;
+        }
+        button.save-btn:hover { background: white; transform: scale(1.02); }
+
+        .display-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .item-card { 
+            background: var(--card); border-radius: 12px; overflow: hidden; 
+            border: 1px solid #333; transition: 0.3s; position: relative; padding-bottom: 10px;
+        }
+        .item-card:hover { border-color: var(--gold); }
+        .item-card img { width: 100%; height: 120px; object-fit: cover; }
+        .item-info { padding: 10px; }
+        .item-info h4 { font-size: 0.9rem; color: var(--gold); }
+        .item-info p { font-size: 0.75rem; opacity: 0.7; margin-top: 3px; }
+
+        .tag { background: var(--gold); color: black; font-size: 0.6rem; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-bottom: 5px; font-weight: bold; }
+
+        .delete-btn {
+            position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8);
+            border: none; color: white; width: 25px; height: 25px; border-radius: 50%;
+            cursor: pointer; font-size: 0.8rem; z-index: 10;
+        }
+
+        .empty-msg { text-align: center; grid-column: 1/-1; opacity: 0.5; padding: 50px; border: 2px dashed #333; border-radius: 20px; }
+
+        #previewArea { margin-top: 20px; padding: 10px; border: 1px dashed var(--gold); border-radius: 10px; display: none; }
+
+        /* Floating buttons */
+        .floating-actions {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px; border-radius: 50px; backdrop-filter: blur(10px);
+            border: 1px solid #333; z-index: 1000;
+        }
+        .btn-visit { background: #1a1a1a; color: #4a90e2; text-decoration: none; padding: 8px 18px; border-radius: 12px; font-weight: bold; border: 1px solid #333; }
+        .btn-navigate { background: #ffcc00; color: #000; border: 2px solid #fff; padding: 8px 30px; border-radius: 20px; font-weight: 900; cursor: pointer; }
+        .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 18px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>NAGAF DASHBOARD</h1>
+        <a href="index.html" style="color: white; text-decoration: none;">🔍 معاينة الموقع</a>
+    </header>
+
+    <div class="container">
+        <!-- تبديل الأقسام -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="showTab('offersTab', this)">🎁 العروض</button>
+            <button class="tab-btn" onclick="showTab('sandwichesTab', this)">🥪 الساندوتشات</button>
+            <button class="tab-btn" onclick="showTab('catsTab', this)">📂 الأقسام (المنيو)</button>
+            <button class="tab-btn" onclick="showTab('branchesTab', this)">🏛️ الفروع</button>
+        </div>
+
+        <!-- قسم العروض -->
+        <div id="offersTab" class="content-section active">
+            <div class="form-box">
+                <h3>إضافة عرض وجبة</h3>
+                <input type="text" id="pName" placeholder="عنوان العرض (مثلاً: عرض الفطار الشعبي)">
+                <input type="number" id="pPrice" placeholder="السعر النهائي (مثلاً: 52)">
+                
+                <!-- الخانة الجديدة لمكونات الوجبة -->
+                <textarea id="pComponents" placeholder="مكونات العرض (مثلاً: فول + طعمية + بطاطس + عيش)" rows="3" 
+                style="width: 100%; padding: 12px; background: var(--accent); border: 1px solid #444; color: white; border-radius: 8px; margin-bottom: 15px;"></textarea>
+
+                <select id="pCat">
+                    <option value="">اختر القسم...</option>
+                </select>
+                
+                <input type="text" id="pOffer" placeholder="ملاحظة إضافية (مثلاً: العيش 2 بلدي أو 3 شامي)">
+                
+                <label style="font-size: 0.8rem;">صورة العرض:</label>
+                <input type="file" id="pImage" accept="image/*" onchange="previewImage(this)">
+                
+                <div id="previewArea">
+                    <img id="imgPre" src="" style="width: 100%; border-radius: 5px;">
+                </div>
+
+                <button class="save-btn" onclick="addProduct()">✨ نشر العرض في المنيو</button>
+
+                <input type="checkbox" id="oVisible" checked style="margin-top: 10px;"> <label for="oVisible" style="font-size: 0.8rem;">عرض في المنيو</label>
+            </div>
+
+            <div class="display-list" id="pList"></div>
+        </div>
+
+        <!-- قسم الساندوتشات -->
+        <div id="sandwichesTab" class="content-section">
+            <div class="form-box">
+                <h3>إضافة ساندوتش</h3>
+                <input type="text" id="sName" placeholder="اسم الساندوتش">
+                <input type="number" id="sPrice" placeholder="السعر (ج.م)">
+                
+                <select id="sCat">
+                    <option value="">اختر القسم...</option>
+                </select>
+                
+                <input type="text" id="sOffer" placeholder="ملاحظة إضافية">
+                
+                <label style="font-size: 0.8rem;">صورة الساندوتش:</label>
+                <input type="file" id="sImage" accept="image/*" onchange="previewImage(this)">
+                
+                <div id="previewArea">
+                    <img id="imgPre" src="" style="width: 100%; border-radius: 5px;">
+                </div>
+
+                <button class="save-btn" onclick="addSandwich()">🥪 إضافة الساندوتش</button>
+            </div>
+
+            <div class="display-list" id="sList"></div>
+        </div>
+
+        <!-- قسم الأقسام -->
+        <div id="catsTab" class="content-section">
+            <div class="form-box">
+                <h3>إضافة قسم جديد</h3>
+                <p style="font-size: 0.8rem; margin-bottom: 10px; color: #aaa;">مثال: جريل، مشويات، مقبلات، حلويات...</p>
+                <input type="text" id="catName" placeholder="اسم القسم الجديد">
+                <button class="save-btn" onclick="addCategory()">📁 إضافة القسم</button>
+            </div>
+
+            <div class="display-list" id="catList"></div>
+        </div>
+
+        <!-- قسم الفروع -->
+        <div id="branchesTab" class="content-section">
+            <div class="form-box">
+                <h3>إضافة فرع جديد</h3>
+                <input type="text" id="bName" placeholder="اسم الفرع">
+                <input type="text" id="bAddress" placeholder="العنوان">
+                <input type="text" id="bTime" placeholder="ساعات العمل">
+                <input type="text" id="bPhone" placeholder="رقم الهاتف">
+                <button class="save-btn" onclick="addBranch()">🏛️ إضافة الفرع</button>
+            </div>
+
+            <div class="display-list" id="bList"></div>
+        </div>
+    </div>
+
+    <script>
+      // التحقق من تسجيل الدخول
+      if (localStorage.getItem('admin_logged_in') !== 'true') {
+        window.location.href = 'login.html';
+      }
+        // التحقق من تسجيل الدخول
+        if (localStorage.getItem('admin_logged_in') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // مصفوفات البيانات
+        let branches = [];
+        let products = [];
+        let sandwiches = [];
+        let categories = [];
+
+        // جلب البيانات من Firebase
+        async function loadData() {
+            try {
+                const offersSnapshot = await getDocs(collection(window.db, 'offers'));
+                products = offersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const sandwichesSnapshot = await getDocs(collection(window.db, 'sandwiches'));
+                sandwiches = sandwichesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                const categoriesSnapshot = await getDocs(collection(window.db, 'categories'));
+                categories = categoriesSnapshot.docs.map(doc => ({ id: doc.id, name: doc.data().name }));
+
+                const branchesSnapshot = await getDocs(collection(window.db, 'branches'));
+                branches = branchesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+                render();
+            } catch (error) {
+                console.error("Error loading data:", error);
+                // Fallback to localStorage if Firebase fails
+                branches = JSON.parse(localStorage.getItem('nagaf_branches')) || [];
+                products = JSON.parse(localStorage.getItem('nagaf_items')) || [];
+                sandwiches = JSON.parse(localStorage.getItem('nagaf_sandwiches')) || [];
+                categories = JSON.parse(localStorage.getItem('nagaf_cats')) || ["عام"];
+                render();
+            }
+        }
+
+        function showTab(tabId, btn) {
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function previewImage(input) {
+            const pre = document.getElementById('previewArea');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('imgPre').src = e.target.result;
+                    pre.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // تحديث القوائم المنسدلة (الأقسام)
+        function updateSelects() {
+            const cSelect = document.getElementById('pCat');
+            const sSelect = document.getElementById('sCat');
+
+            cSelect.innerHTML = '<option value="">اختر القسم...</option>' +
+                categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            sSelect.innerHTML = '<option value="">اختر القسم...</option>' +
+                categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        }
+
+        // إضافة قسم
+        async function addCategory() {
+            const name = document.getElementById('catName').value.trim();
+            if(!name) return alert("اكتب اسم القسم");
+            if(categories.some(c => c.name === name)) return alert("القسم موجود بالفعل");
+
+            try {
+                await addDoc(collection(window.db, 'categories'), { name });
+                document.getElementById('catName').value = '';
+                loadData();
+            } catch (error) {
+                console.error("Error adding category:", error);
+                alert("حدث خطأ في إضافة القسم");
+            }
+        }
+
+        // إضافة فرع
+        async function addBranch() {
+            const name = document.getElementById('bName').value;
+            const address = document.getElementById('bAddress').value;
+            const time = document.getElementById('bTime').value;
+            const phone = document.getElementById('bPhone').value;
+
+            if(!name) return alert("يرجى كتابة اسم الفرع");
+
+            try {
+                await addDoc(collection(window.db, 'branches'), { name, address, time, phone });
+                ['bName','bAddress','bTime','bPhone'].forEach(id => document.getElementById(id).value = '');
+                loadData();
+            } catch (error) {
+                console.error("Error adding branch:", error);
+                alert("حدث خطأ في إضافة الفرع");
+            }
+        }
+
+        // إضافة منتج
+        async function addProduct() {
+            const name = document.getElementById('pName').value;
+            const price = document.getElementById('pPrice').value;
+            const components = document.getElementById('pComponents').value;
+            const category = document.getElementById('pCat').value;
+            const offer = document.getElementById('pOffer').value;
+            const visible = document.getElementById('oVisible').checked;
+            const imgFile = document.getElementById('pImage').files[0];
+
+            if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    await addDoc(collection(window.db, 'offers'), { name, price, components, category, offer, visible, image: e.target.result });
+                    alert("تمت الإضافة بنجاح");
+                    document.getElementById('previewArea').style.display = 'none';
+                    ['pName','pPrice','pComponents','pOffer','pImage'].forEach(id => document.getElementById(id).value = '');
+                    document.getElementById('oVisible').checked = true;
+                    loadData();
+                } catch (error) {
+                    console.error("Error adding product:", error);
+                    alert("حدث خطأ في إضافة المنتج");
+                }
+            };
+            reader.readAsDataURL(imgFile);
+        }
+
+        // إضافة ساندوتش
+        async function addSandwich() {
+            const name = document.getElementById('sName').value;
+            const price = document.getElementById('sPrice').value;
+            const category = document.getElementById('sCat').value;
+            const offer = document.getElementById('sOffer').value;
+            const imgFile = document.getElementById('sImage').files[0];
+
+            if(!name || !imgFile || !category) return alert("الاسم والصورة والقسم متطلبات أساسية!");
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    await addDoc(collection(window.db, 'sandwiches'), { name, price, category, offer, image: e.target.result });
+                    alert("تمت الإضافة بنجاح");
+                    document.getElementById('previewArea').style.display = 'none';
+                    ['sName','sPrice','sOffer','sImage'].forEach(id => document.getElementById(id).value = '');
+                    loadData();
+                } catch (error) {
+                    console.error("Error adding sandwich:", error);
+                    alert("حدث خطأ في إضافة الساندوتش");
+                }
+            };
+            reader.readAsDataURL(imgFile);
+        }
+
+        async function deleteItem(type, index) {
+            if(!confirm("هل أنت متأكد؟")) return;
+
+            const collectionName = type === 'p' ? 'offers' : type === 's' ? 'sandwiches' : type === 'b' ? 'branches' : 'categories';
+
+            try {
+                await deleteDoc(doc(window.db, collectionName, index));
+                loadData();
+            } catch (error) {
+                console.error("Error deleting item:", error);
+                alert("حدث خطأ في حذف العنصر");
+            }
+        }
+
+        function render() {
+            updateSelects();
+
+            // رندر الأقسام
+            const catList = document.getElementById('catList');
+            catList.innerHTML = categories.map((c) => `
+                <div class="item-card" style="padding: 20px; text-align: center;">
+                    <button class="delete-btn" onclick="deleteItem('c', '${c.id}')">×</button>
+                    <h3 style="color: var(--gold)">${c.name}</h3>
+                </div>
+            `).join('');
+
+            // رندر الفروع
+            const bList = document.getElementById('bList');
+            bList.innerHTML = branches.length ? branches.map((b) => `
+                <div class="item-card">
+                    <button class="delete-btn" onclick="deleteItem('b', '${b.id}')">×</button>
+                    <div class="item-info">
+                        <h4>${b.name}</h4>
+                        <p>📍 ${b.address}</p>
+                    </div>
+                </div>
+            `).join('') : '<div class="empty-msg">لا يوجد فروع</div>';
+
+            // رندر العروض
+            const pList = document.getElementById('pList');
+            pList.innerHTML = products.length ? products.map((p) => `
+                <div class="item-card">
+                    <button class="delete-btn" onclick="deleteItem('p', '${p.id}')">×</button>
+                    <img src="${p.image}">
+                    <div class="item-info">
+                        <span class="tag">${p.category}</span>
+                        <h4>${p.name}</h4>
+                        <p>💰 ${p.price} ج.م</p>
+                        ${p.components ? `<p>🧂 ${p.components}</p>` : ''}
+                    </div>
+                </div>
+            `).join('') : '<div class="empty-msg">لا يوجد عروض</div>';
+
+            // رندر الساندوتشات
+            const sList = document.getElementById('sList');
+            sList.innerHTML = sandwiches.length ? sandwiches.map((s) => `
+                <div class="item-card">
+                    <button class="delete-btn" onclick="deleteItem('s', '${s.id}')">×</button>
+                    <img src="${s.image}">
+                    <div class="item-info">
+                        <span class="tag">${s.category}</span>
+                        <h4>${s.name}</h4>
+                        <p>💰 ${s.price} ج.م</p>
+                    </div>
+                </div>
+            `).join('') : '<div class="empty-msg">لا يوجد ساندوتشات</div>';
+        }
+
+        function scrollToTabs() {
+            document.querySelector('.tabs').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function logout() {
+            localStorage.removeItem('admin_logged_in');
+            window.location.href = 'login.html';
+        }
+
+        loadData();
+    </script>
+
+    <div class="floating-actions">
+        <a href="index.html" class="btn-visit">🔗 معاينة</a>
+        <button class="btn-navigate" onclick="scrollToTabs()">تنقل</button>
+        <button class="btn-logout" onclick="logout()">🚪 خروج</button>
+    </div>
+</body>
+</html>
+</html>

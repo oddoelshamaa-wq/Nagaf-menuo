@@ -6,31 +6,40 @@
     <title>NAGAF - Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
 
-    <!-- Firebase SDK -->
-    <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-      import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-analytics.js";
-      import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+  import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js";
 
-      // إعدادات Firebase الخاصة بك
-      const firebaseConfig = {
-        apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
-        authDomain: "nagaf-menuo.firebaseapp.com",
-        projectId: "nagaf-menuo",
-        storageBucket: "nagaf-menuo.firebasestorage.app",
-        messagingSenderId: "1049134380868",
-        appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
-        measurementId: "G-YTSRN50K1G"
-      };
+  const firebaseConfig = {
+    apiKey: "AIzaSyB2zcN93-S1Af-HtM_I6BKNh2yx1e8gzkc",
+    authDomain: "nagaf-menuo.firebaseapp.com",
+    projectId: "nagaf-menuo",
+    storageBucket: "nagaf-menuo.firebasestorage.app",
+    messagingSenderId: "1049134380868",
+    appId: "1:1049134380868:web:de3fa3f89c83b5a8be8911",
+    measurementId: "G-YTSRN50K1G"
+  };
 
-      // تهيئة Firebase
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app); // إضافة Analytics هنا
-      const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-      // جعل قاعدة البيانات متاحة لبقية السكريبت
-      window.db = db;
-    </script>
+  // تصدير الأدوات للنافذة العامة
+  window.db = db;
+  window.collection = collection;
+  window.getDocs = getDocs;
+  window.addDoc = addDoc;
+  window.deleteDoc = deleteDoc;
+  window.doc = doc;
+  window.updateDoc = updateDoc;
+
+  console.log("✅ Firebase جاهز الآن!");
+
+  // الآن نقوم بتشغيل جلب البيانات بأمان بعد التأكد من تفعيل كل شيء
+  if (typeof loadData === 'function') {
+      loadData();
+  }
+</script>
 
     <style>
         :root { --gold: #d4af37; --bg: #0a0a0a; --card: #161616; --accent: #222; }
@@ -452,7 +461,6 @@
             window.location.href = 'login.html';
         }
 
-        loadData();
     </script>
 
     <div class="floating-actions">

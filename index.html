@@ -186,32 +186,32 @@
             font-weight: bold; 
         }
 
-        /* تصميم النافذة المنبثقة الجديد */
+        /* تحسين النافذة المنبثقة لتناسب الموبايل */
         .modal {
             display: none;
             position: fixed;
             z-index: 5000;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            backdrop-filter: blur(8px);
-            display: none; /* سيتم التحكم به عبر JS */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 10px; /* مسافة بسيطة من الجوانب */
         }
 
-        /* الكارت الأبيض (أو الغامق) اللي شايل البيانات */
         .modal-card {
-            background: #1a1a1a; /* خلفية داكنة فخمة */
+            background: #1a1a1a;
             width: 100%;
-            max-width: 800px;
-            border-radius: 25px;
-            border: 2px solid var(--gold);
-            overflow: hidden;
+            max-width: 500px; /* عرض مناسب جداً للموبايل والتابلت */
+            max-height: 90vh; /* عشان متبقاش أطول من الشاشة */
+            border-radius: 20px;
+            border: 1px solid var(--gold);
+            overflow-y: auto; /* لو الكلام كتير يظهر سكرول داخلي */
             position: relative;
-            animation: slideUp 0.4s ease-out;
-            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
+            animation: slideUp 0.3s ease-out;
         }
 
         @keyframes slideUp {
@@ -219,99 +219,84 @@
             to { transform: translateY(0); opacity: 1; }
         }
 
-        /* تقسيم المحتوى (صورة يمين وكلام شمال في الشاشات الكبيرة) */
         .modal-body {
             display: flex;
-            flex-direction: row-reverse; /* ليتماشى مع RTL */
+            flex-direction: column; /* الصورة فوق والكلام تحت بشكل افتراضي للموبايل */
         }
 
         .modal-img-container {
-            flex: 1;
-            min-height: 350px;
+            width: 100%;
+            height: 250px; /* ارتفاع ثابت للصورة */
         }
 
         .modal-img-container img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: cover; /* الصورة تملا المكان بدون تشويه */
         }
 
         .modal-text-content {
-            flex: 1;
-            padding: 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            text-align: right;
+            padding: 20px;
+            text-align: center; /* تظبيط الكلام في النص للموبايل أحلى */
         }
 
         .gold-title {
             color: var(--gold);
-            font-size: 2.2rem;
-            font-weight: 900;
+            font-size: 1.5rem;
+            font-weight: 700;
             margin-bottom: 10px;
         }
 
         .separator {
-            width: 60px;
-            height: 3px;
+            width: 50px;
+            height: 2px;
             background: var(--gold);
-            margin-bottom: 20px;
-            border-radius: 2px;
+            margin: 0 auto 15px auto; /* توسيط الخط */
         }
 
         .product-desc {
             color: #ddd;
-            font-size: 1.2rem;
-            line-height: 1.8;
-            margin-bottom: 30px;
+            font-size: 1rem;
+            line-height: 1.6;
         }
 
-        .modal-footer-decoration {
-            font-weight: bold;
-            color: var(--gold);
-            border-top: 1px dashed #444;
-            padding-top: 15px;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        /* زر القفل */
+        /* زر القفل خليه أوضح على الموبايل */
         .close-modal {
             position: absolute;
-            top: 15px;
-            right: 20px;
+            top: 10px;
+            right: 15px;
             color: white;
-            font-size: 35px;
-            font-weight: bold;
+            font-size: 30px;
+            background: rgba(0,0,0,0.5);
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
             cursor: pointer;
-            z-index: 10;
-            transition: 0.3s;
         }
-        .close-modal:hover { color: var(--gold); }
 
-        /* موبايل: جعل الصورة فوق والكلام تحت */
-        @media (max-width: 768px) {
+        /* شاشات الكمبيوتر الكبيرة */
+        @media (min-width: 769px) {
             .modal-card {
-                max-height: 90vh;
-                overflow-y: auto;
-                margin-top: 20px;
-                border-radius: 20px 20px 0 0;
+                max-width: 800px;
             }
-            .modal-body { flex-direction: column; }
-            .modal-img-container { min-height: 200px; height: 250px; }
-            .modal-text-content { padding: 20px; }
-            .close-modal {
-                background: rgba(0,0,0,0.5);
-                width: 40px;
-                height: 40px;
-                line-height: 40px;
-                text-align: center;
-                border-radius: 50%;
-                top: 10px;
-                right: 10px;
+            .modal-body {
+                flex-direction: row-reverse; /* صورة يمين وكلام شمال */
             }
-            .gold-title { font-size: 1.8rem; }
+            .modal-img-container {
+                flex: 1;
+                height: 400px;
+            }
+            .modal-text-content {
+                flex: 1;
+                text-align: right;
+            }
+            .separator {
+                margin: 0 0 15px auto;
+            }
         }
 
         /* حبل الزينة (المثلثات) */

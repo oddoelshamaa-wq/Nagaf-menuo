@@ -256,6 +256,84 @@
             line-height: 1.6;
         }
 
+        /* تنسيق صندوق الملحوظة */
+        .note-box {
+            background: rgba(212, 175, 55, 0.1); /* خلفية ذهبية شفافة جداً */
+            border: 1px dashed var(--gold); /* إطار ذهبي منقط */
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            direction: rtl;
+        }
+
+        .note-icon {
+            font-size: 1.2rem;
+        }
+
+        .note-text {
+            color: var(--gold); /* لون النص ذهبي */
+            font-weight: bold;
+            font-size: 0.95rem;
+        }
+
+        .main-desc {
+            color: #eee;
+            margin-bottom: 5px;
+        }
+
+        /* حاوية الخيارات */
+        .choices-container {
+            display: flex;
+            flex-wrap: wrap; /* يسمح للخيارات بالنزول سطر جديد إذا كانت جنب بعض */
+            gap: 10px; /* المسافة بين البطاقات */
+            justify-content: center; /* سنترة الخيارات */
+            margin-top: 15px;
+            direction: rtl;
+        }
+
+        /* شكل البطاقة (البادج) المنفصلة */
+        .note-badge {
+            background: rgba(212, 175, 55, 0.15); /* لون ذهبي خفيف جداً */
+            border: 1px solid var(--gold);
+            padding: 8px 15px;
+            border-radius: 50px; /* شكل بيضاوي أنيق */
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .note-badge:hover {
+            background: rgba(212, 175, 55, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* النقطة المضيئة بجانب النص */
+        .note-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--gold);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--gold);
+        }
+
+        .note-text {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 0.9rem;
+            white-space: nowrap; /* يمنع انقسام النص داخل البطاقة الواحدة */
+        }
+
+        .or-text {
+            color: var(--gold);
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin: 0 10px;
+        }
+
         /* 5. زر القفل (إكس) */
         .close-modal {
             position: absolute;
@@ -564,7 +642,7 @@
                 const safeDesc = (p.components || "صحة وهنا على قلبكم 🌙").replace(/'/g, "\\'");
 
                 return `
-                    <div class="deal-card" onclick="openDetails('${p.image}', '${safeName}', '${safeDesc}')">
+                    <div class="deal-card" onclick="openDetails('${p.image}', '${safeName}', '${safeDesc}', '${p.choices || ''}')">
                         <div class="deal-header">
                             <h2>${p.name}</h2>
                             <div class="price-box">
@@ -574,7 +652,8 @@
                         </div>
                         <img src="${p.image}" class="deal-img" loading="lazy">
                         <div style="padding: 10px; text-align: center; color: #b08d1a; font-size: 0.8rem;">
-                            إضغط للتفاصيل 🌙
+                            إضغط للتفاصيل 🌙<br>
+                            <span style="font-size: 0.7rem; color: #8b0000;">ملاحظة: تغيير الطلب قد يغير السعر</span>
                         </div>
                     </div>
                 `;
@@ -582,14 +661,43 @@
         }
 
         // --- وظائف المودال (تكبير الصورة) ---
-        function openDetails(img, title, desc) {
+        function openDetails(img, title, desc, choices) {
             const modal = document.getElementById("imageModal");
             document.getElementById("imgFull").src = img;
             document.getElementById("caption").innerText = title;
-            document.getElementById("description").innerText = desc;
 
-            modal.style.display = "flex"; // استخدام flex للتوسيط
-            document.body.style.overflow = "hidden";
+            let fullDescription = `<div class="main-desc">${desc}</div>`;
+
+            if (choices && choices !== 'undefined' && choices !== '') {
+                // تقسيم النص عند الفاصلة
+                const choicesArray = choices.split('،').join(',').split(',');
+                
+                // إضافة عنوان توضيحي
+                fullDescription += `<div style="color: #888; font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px;">اختر من الخيارات التالية:</div>`;
+                
+                fullDescription += `<div class="choices-container">`;
+                
+                // عرض الخيارات مع وضع كلمة "أو" بينها
+                const mappedChoices = choicesArray.map(item => {
+                    if(item.trim() !== "") {
+                        return `
+                            <div class="note-badge">
+                                <span class="note-dot"></span>
+                                <span class="note-text">${item.trim()}</span>
+                            </div>
+                        `;
+                    }
+                    return '';
+                }).filter(html => html !== '');
+
+                // ربط البطاقات بكلمة "أو"
+                fullDescription += mappedChoices.join('<span class="or-text">أو</span>');
+                
+                fullDescription += `</div>`;
+            }
+
+            document.getElementById("description").innerHTML = fullDescription;
+            modal.style.display = "flex";
         }
 
         function closeImage() {

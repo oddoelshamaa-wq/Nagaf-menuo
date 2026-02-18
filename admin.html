@@ -143,6 +143,115 @@
         .btn-visit { background: #1a1a1a; color: #4a90e2; text-decoration: none; padding: 8px 18px; border-radius: 12px; font-weight: bold; border: 1px solid #333; }
         .btn-navigate { background: #ffcc00; color: #000; border: 2px solid #fff; padding: 8px 30px; border-radius: 20px; font-weight: 900; cursor: pointer; }
         .btn-logout { background: #dc3545; color: white; border: none; padding: 8px 18px; border-radius: 12px; font-weight: bold; cursor: pointer; }
+
+/* حاوية الخيارات */
+.choices-display-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+    justify-content: center;
+}
+
+/* شكل الزر الأحمر الاحترافي */
+.choice-badge {
+    background: linear-gradient(135deg, #800000 0%, #b30000 50%, #800000 100%);
+    color: white;
+    padding: 5px 15px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    direction: ltr; /* لضمان ظهور السعر على اليسار والاسم على اليمين مثل الصورة */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    min-width: 120px;
+    justify-content: space-between;
+}
+
+/* جهة السعر */
+.choice-badge .c-price {
+    color: #ffde59; /* لون أصفر ذهبي للسعر */
+    font-weight: 900;
+    font-size: 1.1rem;
+    padding-right: 10px;
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
+    margin-right: 10px;
+}
+
+/* جهة الاسم */
+.choice-badge .c-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #ffffff;
+    text-align: right;
+    flex-grow: 1;
+}
+
+/* تعديل شكل الكارت ليناسب الإضافات الجديدة */
+.item-card {
+    height: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* حاوية المجموعات */
+.choices-section {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.section-label {
+    color: #888;
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* المجموعة الأساسية (أحمر جراديانت) - للصدر والورك */
+.main-choices-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.main-badge {
+    background: linear-gradient(135deg, #800000 0%, #b30000 50%, #800000 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    direction: ltr; /* السعر يسار والاسم يمين */
+}
+
+.main-badge .b-price { color: #ffcc00; font-weight: 900; padding-right: 8px; border-right: 1px solid rgba(255,255,255,0.3); margin-right: 8px; }
+.main-badge .b-name { font-weight: 700; font-size: 0.9rem; }
+
+/* مجموعة الإضافات (ذهبي مفرغ) - للأرز والسلطات */
+.side-choices-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.side-badge {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    direction: ltr;
+}
+.side-badge .s-price { background: var(--gold); color: black; padding: 0 5px; border-radius: 4px; margin-right: 8px; font-size: 0.75rem; }
     </style>
 </head>
 <body>
@@ -168,12 +277,21 @@
                 <input type="text" id="pName" placeholder="عنوان العرض (مثلاً: عرض الفطار الشعبي)">
                 <input type="number" id="pPrice" placeholder="السعر النهائي (مثلاً: 52)">
 
-                <!-- قسم الخيارات المتعددة للعروض -->
-                <div id="pChoicesContainer" style="margin-bottom: 15px;">
-                    <label style="font-size: 0.8rem; color: var(--gold);">خيارات الوجبة (أرز، عيش، إلخ):</label>
+                <!-- قسم الاختيارات الأساسية (مثل: ورك أو صدر) -->
+                <div id="mainChoicesContainer" style="margin-bottom: 15px; border: 1px dashed var(--gold); padding: 10px; border-radius: 10px;">
+                    <label style="font-size: 0.8rem; color: var(--gold); font-weight: bold;">1. نوع القطعة (ورك / صدر):</label>
                     <div class="choice-row" style="display: flex; gap: 5px; margin-top: 5px;">
-                        <input type="text" class="p-choice-input" placeholder="مثلاً: أرز أبيض أو بسمتي" style="margin-bottom: 5px;">
-                        <button type="button" onclick="addChoiceField('pChoicesContainer', 'p-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">+</button>
+                        <input type="text" class="main-choice-input" placeholder="مثلاً: ورك | 75" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('mainChoicesContainer', 'main-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer;">+</button>
+                    </div>
+                </div>
+
+                <!-- قسم الإضافات (مثل: نوع الأرز) -->
+                <div id="sideChoicesContainer" style="margin-bottom: 15px; border: 1px dashed #555; padding: 10px; border-radius: 10px;">
+                    <label style="font-size: 0.8rem; color: #aaa; font-weight: bold;">2. إضافات اختيارية (أرز / سلطات):</label>
+                    <div class="choice-row" style="display: flex; gap: 5px; margin-top: 5px;">
+                        <input type="text" class="side-choice-input" placeholder="مثلاً: أرز بسمتي | 15" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('sideChoicesContainer', 'side-choice-input')" style="background: #444; color:white; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer;">+</button>
                     </div>
                 </div>
 
@@ -402,7 +520,8 @@
         async function addProduct() {
             const name = document.getElementById('pName').value;
             const price = document.getElementById('pPrice').value;
-            const choices = Array.from(document.querySelectorAll('.p-choice-input')).map(input => input.value).filter(val => val.trim() !== '').join('، ');
+            const mainChoices = Array.from(document.querySelectorAll('.main-choice-input')).map(input => input.value).filter(val => val.trim() !== '').join('، ');
+            const sideChoices = Array.from(document.querySelectorAll('.side-choice-input')).map(input => input.value).filter(val => val.trim() !== '').join('، ');
             const components = document.getElementById('prodDesc').value;
             const category = document.getElementById('pCat').value;
             const offer = document.getElementById('pOffer').value;
@@ -413,13 +532,14 @@
                 // Update
                 try {
                     await updateDoc(doc(window.db, 'offers', editingId), {
-                        name, price, choices, components, category, offer, visible
+                        name, price, mainChoices, sideChoices, components, category, offer, visible
                     });
                     alert("تم التحديث!");
                     editingId = null;
                     // Reset form
                     ['pName','pPrice','prodDesc','pOffer'].forEach(id => document.getElementById(id).value = '');
-                    document.querySelectorAll('.p-choice-input').forEach(input => input.value = '');
+                    document.querySelectorAll('.main-choice-input').forEach(input => input.value = '');
+                    document.querySelectorAll('.side-choice-input').forEach(input => input.value = '');
                     document.getElementById('oVisible').checked = true;
                     document.querySelector('#offersTab .save-btn').innerText = '✨ نشر العرض في المنيو';
                     loadData();
@@ -436,13 +556,14 @@
             compressImage(imgFile, async function(compressedBase64) {
                 try {
                     await addDoc(collection(window.db, 'offers'), {
-                        name, price, choices, components, category, offer, visible,
+                        name, price, mainChoices, sideChoices, components, category, offer, visible,
                         image: compressedBase64 // الصورة المضغوطة
                     });
                     alert("تمت الإضافة بسرعة!");
                     document.getElementById('previewArea').style.display = 'none';
                     ['pName','pPrice','prodDesc','pOffer','pImage'].forEach(id => document.getElementById(id).value = '');
-                    document.querySelectorAll('.p-choice-input').forEach(input => input.value = '');
+                    document.querySelectorAll('.main-choice-input').forEach(input => input.value = '');
+                    document.querySelectorAll('.side-choice-input').forEach(input => input.value = '');
                     document.getElementById('oVisible').checked = true;
                     loadData();
                 } catch (error) {
@@ -543,19 +664,49 @@
 
             // رندر العروض
             const pList = document.getElementById('pList');
-            pList.innerHTML = products.length ? products.map((p) => `
-                <div class="item-card">
-                    <button class="delete-btn" onclick="deleteItem('p', '${p.id}')">×</button>
-                    <button class="edit-btn" onclick="editItem('p', '${p.id}')">✏️</button>
-                    <img src="${p.image}">
-                    <div class="item-info">
-                        <span class="tag">${p.category}</span>
-                        <h4>${p.name}</h4>
-                        <p>💰 ${p.price} ج.م</p>
-                        ${p.components ? `<p>🧂 ${p.components}</p>` : ''}
+            pList.innerHTML = products.length ? products.map((p) => {
+                // معالجة الاختيارات الرئيسية
+                let mainChoicesHTML = '';
+                if (p.mainChoices) {
+                    const mainChoicesArray = p.mainChoices.split('،');
+                    mainChoicesHTML = `<div class="main-choices-group">` +
+                        mainChoicesArray.map(choice => {
+                            const parts = choice.split('|');
+                            const name = parts[0] ? parts[0].trim() : '';
+                            const price = parts[1] ? parts[1].trim() : '';
+                            return `<div class="main-badge">${price ? `<span class="b-price">${price}</span>` : ''}<span class="b-name">${name}</span></div>`;
+                        }).join('') + `</div>`;
+                }
+
+                // معالجة الاختيارات الجانبية
+                let sideChoicesHTML = '';
+                if (p.sideChoices) {
+                    const sideChoicesArray = p.sideChoices.split('،');
+                    sideChoicesHTML = `<div class="side-choices-group">` +
+                        sideChoicesArray.map(choice => {
+                            const parts = choice.split('|');
+                            const name = parts[0] ? parts[0].trim() : '';
+                            const price = parts[1] ? parts[1].trim() : '';
+                            return `<div class="side-badge">${price ? `<span class="s-price">${price}</span>` : ''}<span class="s-name">${name}</span></div>`;
+                        }).join('') + `</div>`;
+                }
+
+                return `
+                    <div class="item-card">
+                        <button class="delete-btn" onclick="deleteItem('p', '${p.id}')">×</button>
+                        <button class="edit-btn" onclick="editItem('p', '${p.id}')">✏️</button>
+                        <img src="${p.image}">
+                        <div class="item-info">
+                            <span class="tag">${p.category}</span>
+                            <h4 style="font-size: 1.1rem; margin-bottom: 5px;">${p.name}</h4>
+                            <p style="color:var(--gold); font-weight:bold;">السعر الأساسي: ${p.price} ج.م</p>
+                            ${p.components ? `<p style="font-size:0.8rem; margin-bottom:10px;">🧂 ${p.components}</p>` : ''}
+                            ${mainChoicesHTML}
+                            ${sideChoicesHTML}
+                        </div>
                     </div>
-                </div>
-            `).join('') : '<div class="empty-msg">لا يوجد عروض</div>';
+                `;
+            }).join('') : '<div class="empty-msg">لا يوجد عروض</div>';
 
             // رندر الساندوتشات
             const sList = document.getElementById('sList');
@@ -613,34 +764,63 @@
                 document.getElementById('pCat').value = product.category;
                 document.getElementById('pOffer').value = product.offer || '';
                 document.getElementById('oVisible').checked = product.visible !== false;
-                // For choices, split and populate inputs
-                const choicesArray = product.choices ? product.choices.split('، ') : [];
-                // Clear existing choice inputs
-                const container = document.getElementById('pChoicesContainer');
-                const existingRows = container.querySelectorAll('.choice-row');
-                existingRows.forEach(row => row.remove());
-                // Add new rows
-                choicesArray.forEach(choice => {
+
+                // Clear existing main choice inputs
+                const mainContainer = document.getElementById('mainChoicesContainer');
+                const existingMainRows = mainContainer.querySelectorAll('.choice-row');
+                existingMainRows.forEach(row => row.remove());
+                // Add new rows for mainChoices
+                const mainChoicesArray = product.mainChoices ? product.mainChoices.split('، ') : [];
+                mainChoicesArray.forEach(choice => {
                     const newRow = document.createElement('div');
                     newRow.className = 'choice-row';
                     newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
                     newRow.innerHTML = `
-                        <input type="text" class="p-choice-input" value="${choice}" style="margin-bottom: 5px;">
+                        <input type="text" class="main-choice-input" value="${choice}" style="margin-bottom: 5px;">
                         <button type="button" onclick="removeChoiceField(this)" style="background: #dc3545; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">-</button>
                     `;
-                    container.appendChild(newRow);
+                    mainContainer.appendChild(newRow);
                 });
-                // If no choices, add one empty
-                if (choicesArray.length === 0) {
+                // If no main choices, add one empty
+                if (mainChoicesArray.length === 0) {
                     const newRow = document.createElement('div');
                     newRow.className = 'choice-row';
                     newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
                     newRow.innerHTML = `
-                        <input type="text" class="p-choice-input" placeholder="مثلاً: أرز أبيض أو بسمتي" style="margin-bottom: 5px;">
-                        <button type="button" onclick="addChoiceField('pChoicesContainer', 'p-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">+</button>
+                        <input type="text" class="main-choice-input" placeholder="مثلاً: ورك | 75" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('mainChoicesContainer', 'main-choice-input')" style="background: var(--gold); border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer;">+</button>
                     `;
-                    container.appendChild(newRow);
+                    mainContainer.appendChild(newRow);
                 }
+
+                // Clear existing side choice inputs
+                const sideContainer = document.getElementById('sideChoicesContainer');
+                const existingSideRows = sideContainer.querySelectorAll('.choice-row');
+                existingSideRows.forEach(row => row.remove());
+                // Add new rows for sideChoices
+                const sideChoicesArray = product.sideChoices ? product.sideChoices.split('، ') : [];
+                sideChoicesArray.forEach(choice => {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'choice-row';
+                    newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
+                    newRow.innerHTML = `
+                        <input type="text" class="side-choice-input" value="${choice}" style="margin-bottom: 5px;">
+                        <button type="button" onclick="removeChoiceField(this)" style="background: #dc3545; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer; font-weight: bold;">-</button>
+                    `;
+                    sideContainer.appendChild(newRow);
+                });
+                // If no side choices, add one empty
+                if (sideChoicesArray.length === 0) {
+                    const newRow = document.createElement('div');
+                    newRow.className = 'choice-row';
+                    newRow.style = 'display: flex; gap: 5px; margin-top: 5px;';
+                    newRow.innerHTML = `
+                        <input type="text" class="side-choice-input" placeholder="مثلاً: أرز بسمتي | 15" style="margin-bottom: 5px;">
+                        <button type="button" onclick="addChoiceField('sideChoicesContainer', 'side-choice-input')" style="background: #444; color:white; border: none; border-radius: 5px; width: 40px; height: 45px; cursor: pointer;">+</button>
+                    `;
+                    sideContainer.appendChild(newRow);
+                }
+
                 // Switch to offers tab
                 showTab('offersTab', document.querySelector('.tab-btn.active'));
                 // Change button text

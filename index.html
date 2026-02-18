@@ -284,55 +284,89 @@
             margin-bottom: 5px;
         }
 
-        /* حاوية الخيارات */
-        .choices-container {
-            display: flex;
-            flex-wrap: wrap; /* يسمح للخيارات بالنزول سطر جديد إذا كانت جنب بعض */
-            gap: 10px; /* المسافة بين البطاقات */
-            justify-content: center; /* سنترة الخيارات */
-            margin-top: 15px;
-            direction: rtl;
-        }
+/* حاوية المجموعات */
+.choices-section {
+    margin-top: 15px;
+    text-align: center;
+}
 
-        /* شكل البطاقة (البادج) المنفصلة */
-        .note-badge {
-            background: rgba(212, 175, 55, 0.15); /* لون ذهبي خفيف جداً */
-            border: 1px solid var(--gold);
-            padding: 8px 15px;
-            border-radius: 50px; /* شكل بيضاوي أنيق */
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: 0.3s;
-        }
+.section-label {
+    color: #888;
+    font-size: 0.75rem;
+    margin-bottom: 8px;
+    display: block;
+}
 
-        .note-badge:hover {
-            background: rgba(212, 175, 55, 0.3);
-            transform: scale(1.05);
-        }
+/* المجموعة الأساسية (أحمر جراديانت) - للصدر والورك */
+.main-choices-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
 
-        /* النقطة المضيئة بجانب النص */
-        .note-dot {
-            width: 6px;
-            height: 6px;
-            background-color: var(--gold);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--gold);
-        }
+.main-badge {
+    background: linear-gradient(135deg, #800000 0%, #b30000 50%, #800000 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    direction: ltr; /* السعر يسار والاسم يمين */
+}
 
-        .note-text {
-            color: var(--gold);
-            font-weight: bold;
-            font-size: 0.9rem;
-            white-space: nowrap; /* يمنع انقسام النص داخل البطاقة الواحدة */
-        }
+.main-badge .b-price { color: #ffcc00; font-weight: 900; padding-right: 8px; border-right: 1px solid rgba(255,255,255,0.3); margin-right: 8px; }
+.main-badge .b-name { font-weight: 700; font-size: 0.9rem; }
 
-        .or-text {
-            color: var(--gold);
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin: 0 10px;
-        }
+/* مجموعة الإضافات (ذهبي مفرغ) - للأرز والسلطات */
+.side-choices-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.side-badge {
+    background: rgba(212, 175, 55, 0.1);
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    direction: ltr;
+}
+.side-badge .s-price { background: var(--gold); color: black; padding: 0 5px; border-radius: 4px; margin-right: 8px; font-size: 0.75rem; }
+
+/* حاوية الأزرار */
+.choices-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+/* شكل الزر الكبير الذهبي (نفس الصورة) */
+.choice-box-btn {
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    background: rgba(212, 175, 55, 0.05); /* خلفية خفيفة جداً */
+    padding: 12px 25px;
+    border-radius: 20px; /* زوايا دائرية كبيرة */
+    font-weight: bold;
+    font-size: 1rem;
+    text-align: center;
+    min-width: 200px;
+    max-width: 90%;
+    line-height: 1.5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
 
         /* 5. زر القفل (إكس) */
         .close-modal {
@@ -640,9 +674,10 @@
                 // تجهيز النصوص عشان علامات التنصيص متبوظش الكود
                 const safeName = p.name.replace(/'/g, "\\'");
                 const safeDesc = (p.components || "صحة وهنا على قلبكم 🌙").replace(/'/g, "\\'");
+                const choices = (p.mainChoices || '') + ';' + (p.sideChoices || '');
 
                 return `
-                    <div class="deal-card" onclick="openDetails('${p.image}', '${safeName}', '${safeDesc}', '${p.choices || ''}')">
+                    <div class="deal-card" onclick="openDetails('${p.image}', '${safeName}', '${safeDesc}', '${choices}')">
                         <div class="deal-header">
                             <h2>${p.name}</h2>
                             <div class="price-box">
@@ -669,30 +704,23 @@
             let fullDescription = `<div class="main-desc">${desc}</div>`;
 
             if (choices && choices !== 'undefined' && choices !== '') {
-                // تقسيم النص عند الفاصلة
-                const choicesArray = choices.split('،').join(',').split(',');
-                
-                // إضافة عنوان توضيحي
-                fullDescription += `<div style="color: #888; font-size: 0.8rem; margin-top: 15px; margin-bottom: 5px;">اختر من الخيارات التالية:</div>`;
-                
                 fullDescription += `<div class="choices-container">`;
-                
-                // عرض الخيارات مع وضع كلمة "أو" بينها
-                const mappedChoices = choicesArray.map(item => {
-                    if(item.trim() !== "") {
-                        return `
-                            <div class="note-badge">
-                                <span class="note-dot"></span>
-                                <span class="note-text">${item.trim()}</span>
-                            </div>
-                        `;
-                    }
-                    return '';
-                }).filter(html => html !== '');
 
-                // ربط البطاقات بكلمة "أو"
-                fullDescription += mappedChoices.join('<span class="or-text">أو</span>');
-                
+                // 1. تقسيم النص بناءً على الفاصلة المنقوطة (;) لعمل أزرار منفصلة
+                const groups = choices.split(';');
+
+                groups.forEach(group => {
+                    let trimmedGroup = group.trim();
+                    if (trimmedGroup !== "") {
+                        // 2. استبدال الفاصلة العادية (,) أو العربية (،) بكلمة " أو " داخل النص
+                        // هذا السطر هو المسؤول عن تحويل الفاصلة لـ "أو"
+                        let textWithOr = trimmedGroup.replace(/,|،/g, ' أو ');
+
+                        // 3. وضع النص النهائي داخل الزر
+                        fullDescription += `<div class="choice-box-btn">${textWithOr}</div>`;
+                    }
+                });
+
                 fullDescription += `</div>`;
             }
 

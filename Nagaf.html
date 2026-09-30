@@ -239,7 +239,7 @@ a{color:inherit;text-decoration:none}
 .mc:hover .mc-in{transform:translateY(-6px) rotateX(2deg);box-shadow:var(--shadow2),0 0 40px rgba(158,0,1,.04);border-color:rgba(158,0,1,.12)}
 .mc-in::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(158,0,1,.03),transparent 50%);pointer-events:none;border-radius:var(--r)}
 .mc-img{width:130px;min-height:150px;flex-shrink:0;position:relative;overflow:hidden}
-.mc-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.mc-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s;cursor:zoom-in}
 .mc:hover .mc-img img{transform:scale(1.1)}
 .mc-img-ov{position:absolute;inset:0;background:linear-gradient(to right,transparent 60%,var(--card) 100%);pointer-events:none}
 .mc-body{padding:16px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;position:relative;z-index:1}
@@ -250,8 +250,8 @@ a{color:inherit;text-decoration:none}
 .mc-price small{font-size:11px;font-weight:400;color:var(--text3)}
 .mc.no-img .mc-body{padding:20px 22px}
 .mc.no-img .mc-in{background:linear-gradient(135deg,var(--card),rgba(158,0,1,.02))}
-.mc-type{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--blue4);background:rgba(11,11,122,.1);border:1px solid rgba(11,11,122,.12);padding:2px 8px;border-radius:6px;width:fit-content}
 .mc-options{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.mc-size-label{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px}
 .mc-opt-btn{font-family:'Tajawal',sans-serif;font-size:11px;font-weight:600;padding:4px 12px;border-radius:8px;border:1px solid rgba(158,0,1,.2);background:rgba(158,0,1,.04);color:var(--text2);cursor:pointer;transition:all .3s}
 .mc-opt-btn:hover{border-color:rgba(158,0,1,.4);color:var(--text)}
 .mc-opt-btn.active{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border-color:transparent;box-shadow:0 4px 15px rgba(158,0,1,.25)}
@@ -411,7 +411,6 @@ const DEFAULTS = {
   ]
 };
 
-const TYPE_LABELS = {dish:'طبق',box:'علب',bread:'عيش',Men:'كيلو'};
 const DAY_NAMES = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
 
 let br=[],mi=[],settings={},selB=null,cDone=false,activeCat='الكل';
@@ -761,8 +760,6 @@ function renderCats(){
   items.forEach(i=>{
     const cat=i.category||i.cat||'';
     if(cat)catsSet.add(cat);
-    const ty=i.itemType||'dish';
-    if(ty!=='dish')catsSet.add(TYPE_LABELS[ty]||ty);
   });
   const cats=['الكل',...catsSet];
   activeCat='الكل';
@@ -781,9 +778,16 @@ function selectPrice(cardId,priceIdx){
   const curr=card.dataset.curr;
   const priceEl=card.querySelector('.mc-price-val');
   if(priceEl) priceEl.textContent=prices[priceIdx].price;
-  const imgEl=card.querySelector('.mc-img img');
   const baseImg=card.dataset.baseImg;
-  if(imgEl){const sizeImg=prices[priceIdx].imageUrl||'';imgEl.src=sizeImg||baseImg;}
+  const imgEl=card.querySelector('.mc-img img');
+  if(imgEl){const sizeImg=prices[priceIdx].imageUrl||baseImg;if(sizeImg){imgEl.src=sizeImg;imgEl.parentElement.style.display='';}else imgEl.parentElement.style.display='none';}
+}
+
+function normalizeSizeLabel(label,index){
+  const value=String(label||'').trim();
+  if(!value)return '';
+  const labels={small:'صغير',quarter:'صغير',quarterKilo:'صغير',eighthKilo:'صغير',quarterC:'صغير','ربع':'صغير','ربع كيلو':'صغير',medium:'وسط',half:'وسط',halfKilo:'وسط','نص':'وسط','نص كيلو':'وسط',large:'كبير',kilo:'كبير',keizer:'كبير','كيزر':'كبير','كبير':'كبير'};
+  return labels[value]||['صغير','وسط','كبير'][index]||value;
 }
 
 function renderMenu(){
@@ -792,7 +796,7 @@ function renderMenu(){
   const q=document.getElementById('searchIn').value.trim().toLowerCase();
   if(q)items=items.filter(i=>(i.name||'').toLowerCase().includes(q)||(i.description||'').toLowerCase().includes(q));
 
-  if(activeCat!=='الكل'){items=items.filter(i=>{const cat=i.category||i.cat||'';const ty=i.itemType||'dish';const tyLabel=TYPE_LABELS[ty]||ty;return cat===activeCat||tyLabel===activeCat;});}
+  if(activeCat!=='الكل'){items=items.filter(i=>(i.category||i.cat||'')===activeCat);}
 
   if(!items.length){g.innerHTML='<div class="empty"><i class="fas fa-utensils"></i><p>لا توجد أصناف</p></div>';return}
 
@@ -802,38 +806,36 @@ function renderMenu(){
     const desc=m.description||'';
     const baseImg=m.imageUrl||m.image||m.img||'';
     const cat=m.category||m.cat||'';
-    const ty=m.itemType||'dish';
     const curr=m.currency||m.cur||'ج.م';
     const prices=m.prices||[];
-    const hasImg=!!baseImg;
+    const hasImg=!!baseImg||prices.some(price=>!!price.imageUrl);
 
     let priceHtml='';
     let optionsHtml='';
-    let currentImg=baseImg;
+    let currentImg=prices[0]?.imageUrl||baseImg||prices.find(price=>price.imageUrl)?.imageUrl||'';
     let dataPrices='';
 
     if(prices.length===0){priceHtml=`<div class="mc-price">0 <small>${curr}</small></div>`;}
-    else if(prices.length===1){priceHtml=`<div class="mc-price"><span class="mc-price-val">${prices[0].price}</span> <small>${curr}</small></div>`;}
+    else if(prices.length===1){const sizeLabel=(m.itemType||'dish')==='dish'?'':normalizeSizeLabel(prices[0].label||prices[0].size,0);priceHtml=`${sizeLabel?`<div class="mc-size-label">${sizeLabel}</div>`:''}<div class="mc-price"><span class="mc-price-val">${prices[0].price}</span> <small>${curr}</small></div>`;}
     else {
       const firstPrice=prices[0].price;
       priceHtml=`<div class="mc-price"><span class="mc-price-val">${firstPrice}</span> <small>${curr}</small></div>`;
       optionsHtml=`<div class="mc-options">${prices.map((p,idx)=>{
-        const label=p.label||p.size||`خيار ${idx+1}`;
+        const label=normalizeSizeLabel(p.label||p.size,idx)||`خيار ${idx+1}`;
         const isActive=idx===0?' active':'';
         return `<button class="mc-opt-btn${isActive}" onclick="event.stopPropagation(); selectPrice('${cardId}', ${idx})">${label}</button>`;
       }).join('')}</div>`;
-      currentImg=prices[0].imageUrl||baseImg;
+      currentImg=prices[0].imageUrl||baseImg||prices.find(price=>price.imageUrl)?.imageUrl||'';
       dataPrices=`data-prices='${JSON.stringify(prices)}' data-curr="${curr}" data-base-img="${baseImg}"`;
     }
 
     return `<div class="mc ${hasImg?'':'no-img'}" id="${cardId}" ${dataPrices} style="animation:fadeUp .4s ease ${i*.03}s both">
       <div class="mc-in">
-        ${hasImg?`<div class="mc-img"><img src="${currentImg}" alt="${name}" loading="lazy" onerror="this.parentElement.style.display='none'"><div class="mc-img-ov"></div></div>`:''}
+        ${hasImg?`<div class="mc-img"><img src="${currentImg}" alt="${name}" loading="lazy" onclick="event.stopPropagation();window.open(this.currentSrc,'_blank','noopener')" onerror="this.parentElement.style.display='none'"><div class="mc-img-ov"></div></div>`:''}
         <div class="mc-body">
           ${cat?`<div class="mc-cat">${cat}</div>`:''}
           <div class="mc-name">${name}</div>
           ${desc?`<div class="mc-desc">${desc}</div>`:''}
-          ${ty&&ty!=='dish'?`<div class="mc-type"><i class="fas fa-${ty==='box'?'box':ty==='bread'?'bread-slice':'weight-hanging'}"></i>${TYPE_LABELS[ty]||ty}</div>`:''}
           ${optionsHtml}
           ${priceHtml}
         </div>

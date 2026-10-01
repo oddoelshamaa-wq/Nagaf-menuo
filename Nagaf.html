@@ -105,6 +105,24 @@ a{color:inherit;text-decoration:none}
 .info-val{font-size:15px;font-weight:700;line-height:1.5}
 .info-val a{color:var(--red2);transition:color .3s}
 .info-val a:hover{color:var(--red4)}
+:root{--social-bg:#111431;--social-fg:#dce2ed;--social-border:rgba(255,255,255,.14);--social-hover-bg:#a90005}
+:root[data-theme="light"]{--social-bg:#f3f5fa;--social-fg:#263967;--social-border:#d9dfed;--social-hover-bg:#172b63}
+.social-card{grid-column:1/-1;align-items:center;padding:12px 16px}
+.social-card .info-body{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.social-card .info-label{margin:0}
+.social-links{display:flex;flex-wrap:nowrap;gap:8px;margin:0}
+.social-link{width:38px;height:38px;display:grid;place-items:center;border:1px solid var(--social-border);border-radius:10px;background:var(--social-bg);color:var(--social-fg);font-size:16px;transition:transform .2s,background .2s,color .2s,border-color .2s}
+.social-link:hover,.social-link:focus-visible{transform:translateY(-2px);background:var(--social-hover-bg);border-color:var(--social-hover-bg);color:#fff}
+.social-link:focus-visible{outline:2px solid var(--social-fg);outline-offset:2px}
+.social-facebook{color:#1877f2;background:rgba(24,119,242,.1);border-color:rgba(24,119,242,.28)}
+.social-facebook:hover,.social-facebook:focus-visible{background:#1877f2;border-color:#1877f2}
+.social-instagram{color:#d62976;background:rgba(214,41,118,.1);border-color:rgba(214,41,118,.28)}
+.social-instagram:hover,.social-instagram:focus-visible{background:linear-gradient(135deg,#feda75,#d62976 55%,#962fbf);border-color:#d62976}
+.social-tiktok{color:#111827;background:rgba(37,244,238,.1);border-color:rgba(37,244,238,.4);text-shadow:-1px 0 #25f4ee,1px 0 #fe2c55}
+.social-tiktok:hover,.social-tiktok:focus-visible{background:#111827;border-color:#111827;color:#fff}
+.social-youtube{color:#ff0033;background:rgba(255,0,51,.1);border-color:rgba(255,0,51,.28)}
+.social-youtube:hover,.social-youtube:focus-visible{background:#ff0033;border-color:#ff0033}
+:root[data-theme="dark"] .social-tiktok{color:#fff;background:#111827}
 .info-small{font-size:12px;color:var(--text3);margin-top:2px;line-height:1.6}
 .hours-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px}
 .hours-row{display:flex;justify-content:space-between;font-size:12px}
@@ -312,6 +330,8 @@ a{color:inherit;text-decoration:none}
   .st-num{font-size:28px}
   .info-sec{padding:0 16px 24px}
   .info-grid{grid-template-columns:1fr}
+  .social-card .info-body{flex-direction:column;align-items:flex-start;gap:8px}
+  .social-links{flex-wrap:wrap}
   .hotline-bar{flex-wrap:wrap;gap:8px;padding:8px 16px}
   .mc-img{width:100px;min-height:120px}
 }
@@ -774,6 +794,19 @@ function extractCoords(link){
   return null;
 }
 
+function normalizeSocialUrl(value){
+  const input=String(value||'').trim();
+  if(!input)return '';
+  try{
+    const url=new URL(/^[a-z][a-z\d+.-]*:/i.test(input)?input:`https://${input}`);
+    return url.protocol==='http:'||url.protocol==='https:'?url.href:'';
+  }catch(e){return '';}
+}
+
+function escapeHtml(value){
+  return String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
+
 function applySettings(s){
   const name=s.siteName||DEFAULTS.name;
   const logo=s.logo||s.heroImage||DEFAULTS.logo;
@@ -816,6 +849,20 @@ function applySettings(s){
         <div class="info-label">العنوان الرئيسي</div>
         ${addr?`<div class="info-val">${addr}</div>`:''}
         ${gpsUrl?`<a href="${gpsUrl}" target="_blank" rel="noopener" class="gps-link"><i class="fas fa-map-location-dot"></i> فتح في الخريطة</a>`:''}
+      </div>
+    </div>`;
+  }
+  const socialLinks=[
+    {key:'facebook',label:'فيسبوك',icon:'fab fa-facebook-f'},
+    {key:'instagram',label:'إنستغرام',icon:'fab fa-instagram'},
+    {key:'tiktok',label:'تيك توك',icon:'fab fa-tiktok'},
+    {key:'youtube',label:'يوتيوب',icon:'fab fa-youtube'}
+  ].map(social=>({...social,url:normalizeSocialUrl(s[social.key])})).filter(social=>social.url);
+  if(socialLinks.length){
+    cards+=`<div class="info-card social-card reveal">
+      <div class="info-body">
+        <div class="info-label">تابعنا على السوشيال ميديا</div>
+        <div class="social-links">${socialLinks.map(social=>`<a class="social-link social-${social.key}" href="${escapeHtml(social.url)}" target="_blank" rel="noopener noreferrer" aria-label="${social.label}" title="${social.label}"><i class="${social.icon}" aria-hidden="true"></i></a>`).join('')}</div>
       </div>
     </div>`;
   }

@@ -1,718 +1,947 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نجف - أدمن</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-    <style>
-        *{font-family:'Tajawal',sans-serif}::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#44403c;border-radius:3px}
-        .toast{padding:12px 24px;border-radius:12px;color:#fff;font-weight:500;animation:ti .3s ease-out,to .3s ease-in 2.7s forwards;box-shadow:0 10px 30px rgba(0,0,0,.3);pointer-events:none}
-        @keyframes ti{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}@keyframes to{from{opacity:1}to{opacity:0;transform:translateY(-20px)}}
-        @keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}.fi{animation:fi .4s ease-out}
-        input[type=file]::-webkit-file-upload-button{background:linear-gradient(135deg,#f59e0b,#d97706);color:#0c0a09;border:none;padding:8px 16px;border-radius:8px;font-weight:600;cursor:pointer;font-family:'Tajawal'}
-        .pill-btn { transition: all 0.2s; }
-        .pill-btn.active { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: #f59e0b; }
-        .hours-row-compact{display:flex;align-items:center;gap:8px}
-        .hours-row-compact .day-label{width:52px;font-size:13px;color:#a8a29e;flex-shrink:0;text-align:left}
-        .hours-row-compact input{flex:1}
-        .hours-section{background:rgba(12,10,9,.5);border:1px solid rgba(68,64,60,.3);border-radius:12px;padding:12px}
-        .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-left:4px}
-        .status-dot.open{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,.4)}
-        .status-dot.closed{background:#ef4444;box-shadow:0 0 6px rgba(239,68,68,.4)}
-        .status-dot.closing{background:#f59e0b;box-shadow:0 0 6px rgba(245,158,11,.4)}
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>مينيو</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<script>try{if(localStorage.getItem('nagaf-theme')!=='dark')document.documentElement.dataset.theme='light'}catch(e){document.documentElement.dataset.theme='light'}</script>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#050510;--bg2:#0a0a1e;--bg3:#10102e;
+  --card:rgba(11,11,50,.55);--card2:rgba(11,11,50,.45);
+  --red:#9e0001;--red2:#c40001;--red3:#7a0001;--red4:#ff2222;
+  --blue:#0b0b7a;--blue2:#1a1a9a;--blue3:#060650;--blue4:#2e2ec0;
+  --glass:rgba(255,255,255,.04);--glass2:rgba(255,255,255,.07);
+  --text:#ffffff;--text2:rgba(255,255,255,.6);--text3:rgba(255,255,255,.35);
+  --r:18px;--r2:24px;
+  --shadow1:0 4px 20px rgba(0,0,0,.4);
+  --shadow2:0 12px 48px rgba(0,0,0,.6);
+  --shadow3:0 24px 80px rgba(0,0,0,.8);
+}
+:root[data-theme="light"]{
+  --bg:#fffaf9;--bg2:#fff;--bg3:#fff0ee;
+  --card:rgba(255,255,255,.96);--card2:rgba(255,255,255,.98);
+  --text:#302322;--text2:rgba(48,35,34,.72);--text3:rgba(48,35,34,.54);
+  --glass:rgba(48,35,34,.025);--glass2:rgba(48,35,34,.05);
+  --shadow1:0 4px 20px rgba(80,30,25,.06);--shadow2:0 12px 48px rgba(80,30,25,.09);--shadow3:0 24px 80px rgba(80,30,25,.12);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Tajawal',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--red3);border-radius:10px}
+a{color:inherit;text-decoration:none}
+
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+#loader{position:fixed;inset:0;z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--bg);transition:opacity .8s cubic-bezier(.4,0,.2,1),visibility .8s}
+#loader.out{opacity:0;visibility:hidden;pointer-events:none}
+.ld-wrap{position:relative;width:100px;height:100px}
+.ld-ring{position:absolute;inset:0;border:2px solid transparent;border-top-color:var(--red);border-radius:50%;animation:ldSpin 1.2s linear infinite}
+.ld-ring:nth-child(2){inset:8px;border-top-color:var(--blue);animation-duration:1.8s;animation-direction:reverse}
+.ld-ring:nth-child(3){inset:16px;border-top-color:var(--red2);animation-duration:.9s}
+.ld-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--red);animation:ldPulse 2s ease infinite}
+@keyframes ldSpin{to{transform:rotate(360deg)}}
+@keyframes ldPulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1.1)}}
+.ld-text{margin-top:28px;font-size:15px;font-weight:300;color:var(--red);letter-spacing:4px;animation:ldPulse 2s ease infinite .5s}
+
+.ambient{position:fixed;pointer-events:none;z-index:0;border-radius:50%;filter:blur(120px)}
+.amb1{width:600px;height:600px;background:radial-gradient(circle,rgba(158,0,1,.08),transparent 70%);top:-250px;right:-200px;animation:ambFloat 20s ease-in-out infinite}
+.amb2{width:500px;height:500px;background:radial-gradient(circle,rgba(11,11,122,.1),transparent 70%);bottom:-200px;left:-180px;animation:ambFloat 25s ease-in-out infinite reverse}
+.amb3{width:300px;height:300px;background:radial-gradient(circle,rgba(158,0,1,.05),transparent 70%);top:40%;left:50%;animation:ambFloat 18s ease-in-out infinite 5s}
+@keyframes ambFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-40px) scale(1.1)}66%{transform:translate(-20px,30px) scale(.95)}}
+
+#app{position:relative;z-index:1;min-height:100vh}
+
+.hdr{position:sticky;top:0;z-index:200;padding:0 20px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,16,.85);backdrop-filter:blur(30px) saturate(1.5);border-bottom:1px solid rgba(158,0,1,.12);transition:all .4s}
+.hdr.scrolled{height:56px;box-shadow:0 4px 30px rgba(0,0,0,.5)}
+.theme-toggle{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border:1px solid rgba(158,0,1,.2);border-radius:12px;background:var(--glass);color:var(--text);font-size:16px;cursor:pointer;transition:background .2s,border-color .2s,transform .2s}
+.theme-toggle:hover{background:var(--glass2);border-color:rgba(158,0,1,.4);transform:translateY(-1px)}
+.hdr-back{width:40px;height:40px;border-radius:12px;border:1px solid rgba(158,0,1,.2);background:var(--glass);color:var(--red);font-size:16px;cursor:pointer;display:none;align-items:center;justify-content:center;transition:all .35s}
+.hdr-back:hover{border-color:var(--red);transform:translateX(3px);box-shadow:0 0 20px rgba(158,0,1,.2)}
+.hdr-back.show{display:flex}
+.hdr-logo-area{display:flex;align-items:center;gap:10px;cursor:pointer}
+.hdr-logo-img{width:38px;height:38px;border-radius:10px;object-fit:contain;border:1px solid rgba(158,0,1,.15);background:var(--bg2);padding:2px;transition:transform .3s}
+.hdr-logo-area:hover .hdr-logo-img{transform:scale(1.08)}
+.hdr-logo-text{font-size:20px;font-weight:900;letter-spacing:1px;background:linear-gradient(135deg,var(--red2),var(--red4),var(--red2));background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 3s ease infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.hdr-spacer{width:40px}
+
+.hotline-bar{background:linear-gradient(135deg,var(--red),var(--red3));padding:10px 24px;display:flex;align-items:center;justify-content:center;gap:16px;position:relative;z-index:199;overflow:hidden}
+.hotline-bar::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent);animation:hlShine 3s ease infinite}
+@keyframes hlShine{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.hotline-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.85);display:flex;align-items:center;gap:6px}
+.hotline-label i{animation:ldPulse 1.5s ease infinite}
+.hotline-num{font-size:18px;font-weight:900;color:#fff;letter-spacing:2px;direction:ltr}
+.hotline-num a{color:#fff;text-decoration:none;transition:color .3s}
+.hotline-num a:hover{color:var(--red4)}
+
+.hero{position:relative;overflow:hidden}
+.hero-cover{width:100%;height:340px;object-fit:cover;filter:brightness(.45)}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,5,16,.3) 0%,rgba(5,5,16,.7) 60%,var(--bg) 100%)}
+.hero-content{position:absolute;bottom:0;left:0;right:0;padding:0 24px 40px;text-align:center;z-index:2}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;letter-spacing:3px;color:var(--red2);text-transform:uppercase;background:rgba(158,0,1,.1);border:1px solid rgba(158,0,1,.2);padding:6px 18px;border-radius:30px;margin-bottom:16px}
+.hero-tag i{font-size:8px;animation:ldPulse 2s ease infinite}
+.hero-title{font-size:clamp(32px,7vw,52px);font-weight:900;line-height:1.1;margin-bottom:10px;background:linear-gradient(135deg,var(--text) 0%,var(--red2) 50%,var(--text) 100%);background-size:200% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 4s ease infinite}
+.hero-sub{font-size:15px;font-weight:300;color:var(--text2);max-width:420px;margin:0 auto;line-height:1.7}
+.hero-line{width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);margin:20px auto 0;border-radius:2px}
+
+.info-sec{padding:0 24px 32px;max-width:900px;margin:0 auto}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.info-card{background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.1);border-radius:var(--r);padding:20px;display:flex;align-items:flex-start;gap:14px;transition:all .4s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.info-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--red2),transparent);opacity:.5}
+.info-card:hover{transform:translateY(-4px);border-color:rgba(158,0,1,.25);box-shadow:0 12px 40px rgba(158,0,1,.08)}
+.info-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.info-ic.red{background:rgba(158,0,1,.12);color:var(--red2);border:1px solid rgba(158,0,1,.15)}
+.info-ic.blue{background:rgba(11,11,122,.15);color:var(--blue4);border:1px solid rgba(11,11,122,.2)}
+.info-body{flex:1;min-width:0}
+.info-label{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-bottom:4px;text-transform:uppercase}
+.info-val{font-size:15px;font-weight:700;line-height:1.5}
+.info-val a{color:var(--red2);transition:color .3s}
+.info-val a:hover{color:var(--red4)}
+.info-small{font-size:12px;color:var(--text3);margin-top:2px;line-height:1.6}
+.hours-grid{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.hours-row{display:flex;justify-content:space-between;font-size:12px}
+.hours-day{color:var(--text2);font-weight:500}
+.hours-time{color:#fff;font-weight:800;direction:ltr;unicode-bidi:isolate;white-space:nowrap;font-variant-numeric:tabular-nums}
+.delivery-hours-banner{position:relative;z-index:5;display:flex;align-items:center;gap:14px;width:min(560px,calc(100% - 32px));margin:-22px auto 28px;padding:16px 18px;border:1px solid rgba(196,0,1,.28);border-radius:16px;background:linear-gradient(110deg,rgba(158,0,1,.16),rgba(11,11,50,.96) 52%,rgba(11,11,122,.2));box-shadow:0 12px 36px rgba(0,0,0,.32),0 0 24px rgba(158,0,1,.08);backdrop-filter:blur(16px)}
+.delivery-hours-icon{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:1px solid rgba(196,0,1,.25);border-radius:12px;background:rgba(158,0,1,.14);color:var(--red4);font-size:18px}
+.delivery-hours-content{display:flex;flex-direction:column;gap:4px;min-width:0}
+.delivery-hours-label{color:rgba(255,255,255,.62);font-size:12px;font-weight:600}
+.delivery-hours-time{color:#fff;font-size:16px;font-weight:800;line-height:1.5}
+.info-hours{margin-top:6px}
+.hours-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 10px;border:1px solid rgba(11,11,122,.18);border-radius:10px;background:rgba(11,11,122,.08);color:var(--text);font:inherit;text-align:right;cursor:pointer;transition:background .2s,border-color .2s}
+.hours-toggle:hover,.hours-toggle:focus-visible{background:rgba(11,11,122,.16);border-color:rgba(46,46,192,.4);outline:none}
+.hours-toggle-main{display:flex;align-items:center;gap:7px;flex-shrink:0;font-size:13px;font-weight:800}
+.hours-toggle-main i{color:var(--blue4)}
+.hours-toggle-summary{display:flex;align-items:center;gap:6px;min-width:0;color:rgba(255,255,255,.78);font-size:12px;font-weight:600;text-align:left;white-space:nowrap}
+.hours-toggle-summary .hours-time{color:#fff}
+.hours-chevron{flex-shrink:0;color:var(--text3);font-size:11px;transition:transform .2s}
+.hours-toggle[aria-expanded="true"] .hours-chevron{transform:rotate(180deg)}
+.hours-list[hidden]{display:none!important}
+.hours-list{display:flex;flex-direction:column;gap:3px;margin-top:8px;padding:8px 6px;border-top:1px solid rgba(255,255,255,.12)}
+.hours-list .hday{color:rgba(255,255,255,.82);font-weight:600}
+.hours-list .htime{min-width:110px;color:#fff;text-align:left;font-weight:800}
+.gps-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue4);font-weight:600;font-size:13px;padding:6px 14px;border-radius:10px;background:rgba(11,11,122,.12);border:1px solid rgba(11,11,122,.15);transition:all .3s;margin-top:6px}
+.gps-link:hover{background:rgba(11,11,122,.25);border-color:rgba(11,11,122,.3);transform:translateX(-3px);box-shadow:0 4px 15px rgba(11,11,122,.15)}
+.gps-link i{font-size:14px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:8px 24px 32px;max-width:600px;margin:0 auto}
+.st-card{background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.08);border-radius:var(--r);padding:24px 12px;text-align:center;position:relative;overflow:hidden;transition:all .4s cubic-bezier(.2,.8,.2,1)}
+.st-card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;background:linear-gradient(90deg,transparent,var(--red2),transparent);opacity:.5}
+.st-card:hover{transform:translateY(-6px);border-color:rgba(158,0,1,.2);box-shadow:0 12px 40px rgba(158,0,1,.08)}
+.st-icon{font-size:20px;color:var(--red3);margin-bottom:8px;display:block}
+.st-num{font-size:36px;font-weight:900;display:block;background:linear-gradient(135deg,var(--red),var(--red4));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.2}
+.st-label{font-size:12px;color:var(--text3);font-weight:500;margin-top:4px;letter-spacing:1px}
+
+.sec-hdr{display:flex;align-items:center;gap:12px;padding:8px 24px 20px}
+.sec-icon{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(158,0,1,.15),rgba(11,11,122,.1));display:flex;align-items:center;justify-content:center;color:var(--red2);font-size:16px;border:1px solid rgba(158,0,1,.12)}
+.sec-title{font-size:22px;font-weight:800}
+.sec-count{font-size:12px;color:var(--red3);background:var(--glass2);padding:3px 10px;border-radius:20px;font-weight:600}
+
+.br-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;padding:0 24px 40px}
+.br-card{perspective:1000px;cursor:pointer}
+.br-card-in{position:relative;background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.08);border-radius:var(--r2);overflow:hidden;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.8,.2,1),box-shadow .5s;will-change:transform}
+.br-card:hover .br-card-in{box-shadow:var(--shadow2),0 0 60px rgba(158,0,1,.06)}
+.br-card-in::before{content:'';position:absolute;inset:0;background:linear-gradient(160deg,rgba(158,0,1,.06) 0%,transparent 40%);pointer-events:none;z-index:2;border-radius:var(--r2)}
+.br-img-wrap{height:200px;position:relative;overflow:hidden}
+.br-img{width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.br-card:hover .br-img{transform:scale(1.12)}
+.br-img-ov{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(5,5,16,.6) 70%,var(--bg) 100%);z-index:1}
+.br-shine{position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.03) 45%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.03) 55%,transparent 60%);transform:translateX(-100%);transition:transform .8s;z-index:1;pointer-events:none}
+.br-card:hover .br-shine{transform:translateX(100%)}
+.br-badge{position:absolute;top:16px;left:16px;z-index:3;font-size:10px;font-weight:700;letter-spacing:2px;color:#fff;background:linear-gradient(135deg,var(--red),var(--red2));padding:5px 14px;border-radius:20px;box-shadow:0 4px 15px rgba(158,0,1,.3)}
+.br-status{position:absolute;top:16px;right:16px;z-index:3;width:10px;height:10px;border-radius:50%;background:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.5);animation:statusPulse 2s ease infinite}
+@keyframes statusPulse{0%,100%{box-shadow:0 0 4px rgba(74,222,128,.3)}50%{box-shadow:0 0 16px rgba(74,222,128,.6)}}
+.br-status-closed{background:#ef4444;box-shadow:0 0 12px rgba(239,68,68,.5);animation:statusPulseClosed 2s ease infinite}
+@keyframes statusPulseClosed{0%,100%{box-shadow:0 0 4px rgba(239,68,68,.3)}50%{box-shadow:0 0 16px rgba(239,68,68,.6)}}
+.br-status-closing{background:#f59e0b;box-shadow:0 0 12px rgba(245,158,11,.5);animation:statusPulseClosing 2s ease infinite}
+@keyframes statusPulseClosing{0%,100%{box-shadow:0 0 4px rgba(245,158,11,.3)}50%{box-shadow:0 0 16px rgba(245,158,11,.6)}}
+.br-body{padding:20px 24px 24px;position:relative;z-index:3}
+.br-name{font-size:22px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.br-name-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;box-shadow:0 0 8px rgba(158,0,1,.4)}
+.br-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.br-tag{font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px;background:var(--glass2);border:1px solid rgba(255,255,255,.04);padding:4px 10px;border-radius:8px}
+.br-tag i{color:var(--blue4);font-size:9px}
+.br-desc{font-size:13px;color:var(--text3);line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:16px}
+.br-cta{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--red2);padding:10px 22px;border-radius:14px;border:1px solid rgba(158,0,1,.2);background:linear-gradient(135deg,rgba(158,0,1,.08),rgba(158,0,1,.02));transition:all .4s cubic-bezier(.2,.8,.2,1);position:relative;overflow:hidden}
+.br-cta::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--red),var(--red2));opacity:0;transition:opacity .4s}
+.br-cta span,.br-cta i{position:relative;z-index:1}
+.br-card:hover .br-cta{color:#fff;border-color:transparent;transform:translateX(-4px);box-shadow:0 6px 25px rgba(158,0,1,.25)}
+.br-card:hover .br-cta::before{opacity:1}
+.br-gps{display:inline-flex;align-items:center;gap:5px;color:var(--blue4);font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;background:rgba(11,11,122,.1);border:1px solid rgba(11,11,122,.12);transition:all .3s;margin-bottom:10px}
+.br-gps:hover{background:rgba(11,11,122,.2);border-color:rgba(11,11,122,.25)}
+
+.br-hours{display:flex;flex-direction:column;gap:3px;margin-bottom:12px;padding:10px 14px;background:rgba(11,11,122,.08);border:1px solid rgba(11,11,122,.1);border-radius:10px}
+.br-hours-title{font-size:10px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.br-hours-title i{color:var(--blue4);font-size:9px}
+.br-hours .hours-toggle{padding:5px 4px;border:0;background:transparent}
+.br-hours .hours-toggle-main{font-size:11px}
+.br-hours .hours-toggle-summary{font-size:10px}
+.br-hours .hours-list{margin-top:4px;padding:6px 4px 0}
+.br-hours-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;font-size:13px;line-height:1.5;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.br-hours-row:last-child{border-bottom:0}
+.br-hours-row .hday{color:var(--text2);font-weight:500}
+.br-hours-row .htime{color:#fff;font-size:13px;font-weight:800;direction:ltr;unicode-bidi:isolate;text-align:left;white-space:nowrap}
+.br-hours-row.today{background:rgba(158,0,1,.08);padding:2px 6px;border-radius:4px}
+.br-hours-row.today .hday{color:var(--red2)}
+.br-hours-row.today .htime{color:var(--red4)}
+
+#menuView{display:none}
+.mv-herd{position:relative;height:300px;overflow:hidden}
+.mv-herd img.mv-img{width:100%;height:100%;object-fit:cover;filter:brightness(.7)}
+.mv-herd-ov{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(5,5,16,.2) 0%,rgba(5,5,16,.5) 50%,var(--bg) 100%)}
+.mv-herd-info{position:absolute;bottom:28px;right:28px;left:28px;z-index:2}
+.mv-herd-logo{width:60px;height:60px;border-radius:14px;object-fit:contain;border:2px solid rgba(158,0,1,.25);background:var(--bg2);padding:3px;margin-bottom:10px;box-shadow:0 4px 20px rgba(0,0,0,.4)}
+.mv-herd-name{font-size:32px;font-weight:900;margin-bottom:6px}
+.mv-herd-sub{font-size:14px;color:var(--text2);font-weight:300;display:flex;align-items:center;gap:8px}
+.mv-herd-sub i{color:var(--blue4)}
+.mv-gps-link{display:inline-flex;align-items:center;gap:6px;color:var(--blue4);font-size:13px;font-weight:600;padding:6px 14px;border-radius:10px;background:rgba(11,11,122,.15);border:1px solid rgba(11,11,122,.2);transition:all .3s;margin-top:8px}
+.mv-gps-link:hover{background:rgba(11,11,122,.3);box-shadow:0 4px 15px rgba(11,11,122,.15)}
+
+.mv-hours{display:flex;flex-direction:column;gap:3px;margin-top:10px;padding:10px 16px;background:rgba(11,11,122,.1);border:1px solid rgba(11,11,122,.15);border-radius:12px;max-width:380px}
+.mv-hours-title{font-size:11px;color:var(--text3);font-weight:600;letter-spacing:1px;margin-bottom:4px;display:flex;align-items:center;gap:5px}
+.mv-hours-title i{color:var(--blue4);font-size:10px}
+.mv-hours .hours-toggle{padding:5px 4px;border:0;background:transparent}
+.mv-hours .hours-toggle-main{font-size:11px}
+.mv-hours .hours-list{margin-top:4px;padding:6px 4px 0}
+.mv-hours-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:32px;font-size:13px;line-height:1.5;padding:5px 8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.mv-hours-row:last-child{border-bottom:0}
+.mv-hours-row .hday{color:var(--text2);font-weight:500}
+.mv-hours-row .htime{color:#fff;font-size:13px;font-weight:800;direction:ltr;unicode-bidi:isolate;text-align:left;white-space:nowrap}
+.mv-hours-row.today{background:rgba(158,0,1,.1);padding:2px 8px;border-radius:6px}
+.mv-hours-row.today .hday{color:var(--red2)}
+.mv-hours-row.today .htime{color:var(--red4)}
+
+.mv-status-badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:4px 14px;border-radius:20px;margin-top:6px}
+.mv-status-badge.open{background:rgba(74,222,128,.12);color:#4ade80;border:1px solid rgba(74,222,128,.2)}
+.mv-status-badge.closing{background:rgba(245,158,11,.12);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+.mv-status-badge.closed{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.2)}
+.mv-status-badge .dot{width:7px;height:7px;border-radius:50%;background:currentColor;animation:ldPulse 1.5s ease infinite}
+.br-status-tag.open{border-color:rgba(74,222,128,.2)!important;background:rgba(74,222,128,.06)!important}
+.br-status-tag.open i{color:#4ade80!important}
+.br-status-tag.closing{border-color:rgba(245,158,11,.2)!important;background:rgba(245,158,11,.06)!important}
+.br-status-tag.closing i{color:#f59e0b!important}
+.br-status-tag.closed{border-color:rgba(239,68,68,.2)!important;background:rgba(239,68,68,.06)!important}
+.br-status-tag.closed i{color:#ef4444!important}
+
+.search{padding:16px 24px 8px}
+.search-box{display:flex;align-items:center;gap:12px;background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.08);border-radius:14px;padding:12px 18px;transition:all .3s}
+.search-box:focus-within{border-color:rgba(158,0,1,.3);box-shadow:0 0 30px rgba(158,0,1,.05)}
+.search-box i{color:var(--text3);font-size:14px}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-size:14px;font-family:'Tajawal',sans-serif;width:100%;font-weight:300}
+.search-box input::placeholder{color:var(--text3)}
+
+.cats{display:flex;gap:8px;padding:12px 24px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cats::-webkit-scrollbar{display:none}
+.cat{white-space:nowrap;padding:9px 20px;border-radius:12px;border:1px solid rgba(158,0,1,.12);background:var(--glass);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;transition:all .35s cubic-bezier(.2,.8,.2,1);font-family:'Tajawal',sans-serif;backdrop-filter:blur(10px);position:relative;overflow:hidden}
+.cat::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--red),var(--red2));opacity:0;transition:opacity .35s}
+.cat span{position:relative;z-index:1}
+.cat.on,.cat:hover{color:#fff;border-color:transparent;box-shadow:0 4px 20px rgba(158,0,1,.2);transform:translateY(-2px)}
+.cat.on::before,.cat:hover::before{opacity:1}
+
+.mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:8px 24px 48px}
+.mc{perspective:700px}
+.mc-in{display:flex;background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.06);border-radius:var(--r);overflow:hidden;transition:all .4s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d;position:relative}
+.mc:hover .mc-in{transform:translateY(-6px) rotateX(2deg);box-shadow:var(--shadow2),0 0 40px rgba(158,0,1,.04);border-color:rgba(158,0,1,.12)}
+.mc-in::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(158,0,1,.03),transparent 50%);pointer-events:none;border-radius:var(--r)}
+.mc-img{width:130px;min-height:150px;flex-shrink:0;position:relative;overflow:hidden}
+.mc-img img{width:100%;height:100%;object-fit:cover;transition:transform .6s;cursor:zoom-in}
+.mc:hover .mc-img img{transform:scale(1.1)}
+.mc-img-ov{position:absolute;inset:0;background:linear-gradient(to right,transparent 60%,var(--card) 100%);pointer-events:none}
+.mc-body{padding:16px 18px;flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px;position:relative;z-index:1}
+.mc-cat{font-size:9px;color:var(--red2);font-weight:700;letter-spacing:2px;text-transform:uppercase}
+.mc-name{font-size:17px;font-weight:700;line-height:1.4}
+.mc-desc{font-size:12px;color:var(--text3);line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mc-price{font-size:20px;font-weight:900;color:var(--red2);display:flex;align-items:baseline;gap:4px;margin-top:2px}
+.mc-price small{font-size:11px;font-weight:400;color:var(--text3)}
+.mc.no-img .mc-body{padding:20px 22px}
+.mc.no-img .mc-in{background:linear-gradient(135deg,var(--card),rgba(158,0,1,.02))}
+.mc-options{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.mc-size-label{font-size:11px;color:var(--text2);font-weight:600;margin-bottom:6px}
+.mc-opt-btn{font-family:'Tajawal',sans-serif;font-size:11px;font-weight:600;padding:4px 12px;border-radius:8px;border:1px solid rgba(158,0,1,.2);background:rgba(158,0,1,.04);color:var(--text2);cursor:pointer;transition:all .3s}
+.mc-opt-btn:hover{border-color:rgba(158,0,1,.4);color:var(--text)}
+.mc-opt-btn.active{background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;border-color:transparent;box-shadow:0 4px 15px rgba(158,0,1,.25)}
+
+.empty{text-align:center;padding:80px 24px}
+.empty i{font-size:56px;color:var(--red3);opacity:.3;display:block;margin-bottom:20px}
+.empty p{font-size:16px;color:var(--text3);font-weight:300}
+
+.ftr{text-align:center;padding:32px 24px;border-top:1px solid rgba(158,0,1,.08);position:relative;z-index:1}
+.ftr-logo{width:50px;height:50px;border-radius:12px;object-fit:contain;margin:0 auto 12px;opacity:.5;border:1px solid rgba(158,0,1,.1);background:var(--bg2);padding:3px}
+.ftr span{color:var(--red3)}
+.ftr-love{color:var(--red);font-size:10px;margin-top:6px;letter-spacing:2px;font-weight:300}
+
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--card2);backdrop-filter:blur(30px);color:var(--text);padding:14px 28px;border-radius:16px;font-size:14px;font-weight:500;z-index:9999;transition:transform .5s cubic-bezier(.2,.8,.2,1);border:1px solid rgba(158,0,1,.15);box-shadow:var(--shadow2);display:flex;align-items:center;gap:10px}
+.toast i{color:var(--red2)}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+.reveal{opacity:0;transform:translateY(30px);transition:opacity .6s ease,transform .6s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+.fab-call{position:fixed;bottom:24px;left:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--red),var(--red2));color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 30px rgba(158,0,1,.4);cursor:pointer;transition:all .3s;border:none;animation:fabPulse 2s ease infinite}
+.fab-call:hover{transform:scale(1.12);box-shadow:0 8px 40px rgba(158,0,1,.5)}
+@keyframes fabPulse{0%,100%{box-shadow:0 6px 30px rgba(158,0,1,.4)}50%{box-shadow:0 6px 30px rgba(158,0,1,.6),0 0 0 8px rgba(158,0,1,.1)}}
+
+.fab-wa{position:fixed;bottom:24px;right:24px;z-index:999;width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#25d366,#128c7e);color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 30px rgba(37,211,102,.3);cursor:pointer;transition:all .3s;border:none}
+.fab-wa:hover{transform:scale(1.12);box-shadow:0 8px 40px rgba(37,211,102,.4)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+@media(max-width:480px){
+  .br-grid{grid-template-columns:1fr;padding:0 16px 32px}
+  .delivery-hours-banner{margin:-16px auto 22px;padding:13px 14px;gap:11px}
+  .delivery-hours-icon{width:40px;height:40px;flex-basis:40px;font-size:16px}
+  .delivery-hours-time{font-size:14px}
+  .mg{grid-template-columns:1fr;padding:8px 16px 40px}
+  .stats{padding:8px 16px 24px}
+  .hero-cover{height:280px}
+  .sec-hdr{padding:8px 16px 16px}
+  .search{padding:12px 16px 4px}
+  .cats{padding:10px 16px}
+  .mv-herd{height:220px}
+  .st-num{font-size:28px}
+  .info-sec{padding:0 16px 24px}
+  .info-grid{grid-template-columns:1fr}
+  .hotline-bar{flex-wrap:wrap;gap:8px;padding:8px 16px}
+  .mc-img{width:100px;min-height:120px}
+}
+@media(min-width:768px)and(max-width:1023px){.br-grid{grid-template-columns:repeat(2,1fr)}.info-grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1024px){.br-grid{grid-template-columns:repeat(3,1fr)}.mg{grid-template-columns:repeat(3,1fr)}.info-grid{grid-template-columns:repeat(3,1fr)}}
+:root[data-theme="light"] .hdr{background:rgba(255,255,255,.9);border-bottom-color:rgba(158,0,1,.14)}
+:root[data-theme="light"] .hotline-bar{background:linear-gradient(135deg,#fff0ee,#ffe6e3);border-bottom:1px solid rgba(158,0,1,.12)}
+:root[data-theme="light"] .hotline-label,:root[data-theme="light"] .hotline-num,:root[data-theme="light"] .hotline-num a{color:var(--red)}
+:root[data-theme="light"] .hero-cover{filter:brightness(1.18) saturate(1.08)}
+:root[data-theme="light"] .hero-overlay{background:linear-gradient(to bottom,rgba(255,250,249,.12) 0%,rgba(255,250,249,.28) 60%,var(--bg) 100%)}
+:root[data-theme="light"] .delivery-hours-banner{background:linear-gradient(110deg,rgba(158,0,1,.07),rgba(255,255,255,.96) 52%,rgba(11,11,122,.06));border-color:rgba(158,0,1,.2)}
+:root[data-theme="light"] .delivery-hours-label,:root[data-theme="light"] .hours-toggle-summary{color:var(--text2)}
+:root[data-theme="light"] .delivery-hours-time,:root[data-theme="light"] .hours-list .hday,:root[data-theme="light"] .hours-list .htime,:root[data-theme="light"] .br-hours-row .hday,:root[data-theme="light"] .br-hours-row .htime,:root[data-theme="light"] .mv-hours-row .hday,:root[data-theme="light"] .mv-hours-row .htime{color:var(--text)}
+:root[data-theme="light"] .hours-list,:root[data-theme="light"] .br-hours-row,:root[data-theme="light"] .mv-hours-row{border-color:rgba(36,31,29,.1)}
+:root[data-theme="light"] .hours-toggle{background:rgba(11,11,122,.035);border-color:rgba(11,11,122,.12)}
+:root[data-theme="light"] .br-hours,:root[data-theme="light"] .mv-hours{background:rgba(11,11,122,.035);border-color:rgba(11,11,122,.1)}
+:root[data-theme="light"] .search-box{border-color:rgba(158,0,1,.14)}
+:root[data-theme="light"] .cat{border-color:rgba(158,0,1,.16)}
+</style>
 </head>
-<body class="bg-[#0c0a09] text-stone-200 min-h-screen">
-<div class="fixed top-5 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2" id="tB"></div>
+<body>
 
-<nav class="fixed top-0 left-0 right-0 z-50 h-16 flex items-center justify-between px-6" style="background:rgba(12,10,9,.9);backdrop-filter:blur(12px);border-bottom:1px solid rgba(68,64,60,.3)">
-    <div class="flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center"><span class="iconify text-[#0c0a09] text-lg" data-icon="mdi:silverware-fork-knife"></span></div><span class="text-xl font-bold text-amber-400">نجف</span><span class="text-xs text-stone-500">| أدمن</span></div>
-    <a href="index.html" class="px-4 py-2 rounded-xl bg-amber-500/10 text-amber-400 text-xs font-semibold hover:bg-amber-500/20 transition-all flex items-center gap-1.5"><span class="iconify" data-icon="mdi:eye"></span> عرض الموقع</a>
-</nav>
+<canvas id="bgCanvas"></canvas>
+<div class="ambient amb1"></div>
+<div class="ambient amb2"></div>
+<div class="ambient amb3"></div>
 
-<div class="pt-20 max-w-6xl mx-auto px-6 pb-20 fi">
-    <!-- SITE SETTINGS -->
-    <div class="bg-[#1c1917]/60 rounded-2xl border border-stone-800/50 p-6 mb-8">
-        <div class="flex items-center gap-2 mb-5"><span class="iconify text-amber-500 text-xl" data-icon="mdi:palette"></span><h3 class="text-lg font-bold">تخصيص الموقع</h3></div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">اسم المطعم</label><input id="sN" type="text" placeholder="نجف" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">الوصف</label><input id="sD" type="text" placeholder="أفخم المنيو" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">اللون الأساسي</label><input id="sC" type="color" value="#f59e0b" class="w-full h-10 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl cursor-pointer"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">لون الخلفية</label><input id="sBG" type="color" value="#0c0a09" class="w-full h-10 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl cursor-pointer"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1 flex items-center gap-1"><span class="iconify text-emerald-400" data-icon="mdi:whatsapp" style="font-size:14px"></span> واتساب</label><input id="sW" type="text" placeholder="9715xxxxxxxx" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50" style="direction:ltr;text-align:left"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1 flex items-center gap-1"><span class="iconify text-green-400" data-icon="mdi:phone" style="font-size:14px"></span> تليفون</label><input id="sP" type="text" placeholder="05xxxxxxxx" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50" style="direction:ltr;text-align:left"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1 flex items-center gap-1"><span class="iconify text-blue-400" data-icon="mdi:headset" style="font-size:14px"></span> الخط الساخن</label><input id="sCC" type="text" placeholder="05xxxxxxxx" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50" style="direction:ltr;text-align:left"></div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-1">اللوجو (صورة البراند)</label>
-                <input id="sLogo" type="file" accept="image/*" class="w-full text-sm text-stone-300 file:ml-3">
-                <div id="logoP" class="mt-2 hidden"><img id="logoPI" class="w-20 h-20 object-contain rounded-lg border border-stone-700/50 bg-stone-900"></div>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-1">صورة الهيرو (الخلفية العريضة)</label>
-                <input id="sHI" type="file" accept="image/*" class="w-full text-sm text-stone-300 file:ml-3">
-                <div id="hP" class="mt-2 hidden"><img id="hPI" class="w-full h-20 object-cover rounded-lg border border-stone-700/50"></div>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-1">صورة الهيرو للوضع الفاتح</label>
-                <input id="sHIL" type="file" accept="image/*" class="w-full text-sm text-stone-300 file:ml-3">
-                <div id="hLightP" class="mt-2 hidden"><img id="hLightPI" class="w-full h-20 object-cover rounded-lg border border-stone-700/50"></div>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-1">صورة الخلفية</label>
-                <input id="sBGI" type="file" accept="image/*" class="w-full text-sm text-stone-300 file:ml-3">
-                <div id="bgP" class="mt-2 hidden"><img id="bgPI" class="w-full h-20 object-cover rounded-lg border border-stone-700/50"></div>
-            </div>
-            <div class="sm:col-span-2 lg:col-span-3"><label class="block text-xs font-medium text-stone-400 mb-1">عن المطعم</label><textarea id="sA" rows="3" placeholder="اكتب وصف..." class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50 resize-none"></textarea></div>
-            
-            <!-- مواعيد المطعم -->
-            <div class="sm:col-span-2 lg:col-span-3">
-                <label class="block text-xs font-medium text-stone-400 mb-2">مواعيد العمل (المطعم)</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">السبت</span><div class="flex items-center gap-2 flex-1"><input id="h0s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h0e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الأحد</span><div class="flex items-center gap-2 flex-1"><input id="h1s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h1e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الاثنين</span><div class="flex items-center gap-2 flex-1"><input id="h2s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h2e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الثلاثاء</span><div class="flex items-center gap-2 flex-1"><input id="h3s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h3e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الأربعاء</span><div class="flex items-center gap-2 flex-1"><input id="h4s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h4e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الخميس</span><div class="flex items-center gap-2 flex-1"><input id="h5s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h5e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الجمعة</span><div class="flex items-center gap-2 flex-1"><input id="h6s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="h6e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                </div>
-            </div>
-
-            <!-- مواعيد الكول سنتر -->
-            <div class="sm:col-span-2 lg:col-span-3 border-t border-stone-800 pt-4 mt-2">
-                <label class="block text-xs font-medium text-amber-400 mb-2 flex items-center gap-1"><span class="iconify" data-icon="mdi:headset"></span> مواعيد التوصيل</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">السبت</span><div class="flex items-center gap-2 flex-1"><input id="ch0s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch0e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الأحد</span><div class="flex items-center gap-2 flex-1"><input id="ch1s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch1e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الاثنين</span><div class="flex items-center gap-2 flex-1"><input id="ch2s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch2e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الثلاثاء</span><div class="flex items-center gap-2 flex-1"><input id="ch3s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch3e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الأربعاء</span><div class="flex items-center gap-2 flex-1"><input id="ch4s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch4e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الخميس</span><div class="flex items-center gap-2 flex-1"><input id="ch5s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch5e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    <div class="flex items-center gap-2"><span class="text-sm text-stone-400 w-16">الجمعة</span><div class="flex items-center gap-2 flex-1"><input id="ch6s" type="time" value="07:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500">-</span><input id="ch6e" type="time" value="20:00" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                </div>
-            </div>
-        </div>
-        <button onclick="saveSt()" id="saveStB" class="px-6 py-2.5 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] font-bold text-sm hover:shadow-lg transition-all">حفظ الإعدادات</button>
-    </div>
-
-    <!-- CATEGORIES MANAGEMENT -->
-    <div class="bg-[#1c1917]/60 rounded-2xl border border-stone-800/50 p-6 mb-8">
-        <div class="flex items-center justify-between mb-5">
-            <div class="flex items-center gap-2"><span class="iconify text-amber-500 text-xl" data-icon="mdi:tag-multiple"></span><h3 class="text-lg font-bold">الأقسام (التصنيفات)</h3><span class="text-xs text-stone-500" id="catC"></span></div>
-            <button onclick="sCatM()" class="px-4 py-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] text-sm font-bold hover:shadow-lg transition-all">+ قسم</button>
-        </div>
-        <div id="aCatL" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-        <div id="nCat" class="hidden text-center py-8 text-stone-500"><p>لا توجد أقسام</p></div>
-    </div>
-
-    <!-- BRANCHES -->
-    <div class="bg-[#1c1917]/60 rounded-2xl border border-stone-800/50 p-6 mb-8">
-        <div class="flex items-center justify-between mb-5"><div class="flex items-center gap-2"><span class="iconify text-amber-500 text-xl" data-icon="mdi:store-plus"></span><h3 class="text-lg font-bold">الفروع</h3><span class="text-xs text-stone-500" id="bC"></span></div><button onclick="sBM()" class="px-4 py-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] text-sm font-bold hover:shadow-lg transition-all">+ فرع</button></div>
-        <div id="aBL" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-        <div id="nB" class="hidden text-center py-8 text-stone-500"><p>لا توجد فروع</p></div>
-    </div>
-
-    <!-- ITEMS -->
-    <div class="bg-[#1c1917]/60 rounded-2xl border border-stone-800/50 p-6">
-        <div class="flex items-center justify-between mb-5"><div class="flex items-center gap-2"><span class="iconify text-amber-500 text-xl" data-icon="mdi:food"></span><h3 class="text-lg font-bold">الأصناف</h3><span class="text-xs text-stone-500" id="iC"></span></div><button onclick="sIM()" class="px-4 py-2 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] text-sm font-bold hover:shadow-lg transition-all">+ صنف</button></div>
-        <div class="mb-5 flex gap-3 flex-wrap">
-            <select id="aF" onchange="rAI()" class="w-full sm:w-64 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><option value="">كل الفروع</option></select>
-            <select id="aCatF" onchange="rAI()" class="w-full sm:w-64 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><option value="">كل الأقسام</option></select>
-        </div>
-        <div id="aIL" class="space-y-3"></div>
-        <div id="nI" class="hidden text-center py-8 text-stone-500"><p>لا توجد أصناف</p></div>
-    </div>
+<div id="loader">
+  <div class="ld-wrap">
+    <div class="ld-ring"></div>
+    <div class="ld-ring"></div>
+    <div class="ld-ring"></div>
+    <div class="ld-icon"><i class="fas fa-utensils"></i></div>
+  </div>
+  <div class="ld-text">جاري التحميل</div>
 </div>
 
-<div id="ov" class="fixed inset-0 z-[60] hidden bg-black/60" style="backdrop-filter:blur(8px)" onclick="cM()"></div>
+<div id="app">
+  <div class="hotline-bar" id="hotlineBar">
+    <div class="hotline-label"><i class="fas fa-phone-volume"></i> الخط الساخن</div>
+    <div class="hotline-num"><a href="tel:" id="hotlineLink">—</a></div>
+  </div>
 
-<!-- Category Modal -->
-<div id="catMo" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
-    <div class="bg-[#1c1917] rounded-2xl border border-stone-700/50 w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold" id="catMT">إضافة قسم</h3><button onclick="cM()" class="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center hover:bg-stone-700"><span class="iconify text-stone-400" data-icon="mdi:close"></span></button></div>
-        <div class="space-y-4">
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">اسم القسم</label><input id="catN" type="text" placeholder="مثال: مشويات" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <button onclick="svCat()" id="svCatB" class="w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] font-bold hover:shadow-lg transition-all">إضافة</button>
-        </div>
+  <header class="hdr" id="hdr">
+    <button class="hdr-back" id="backBtn" onclick="goBack()"><i class="fas fa-arrow-right"></i></button>
+    <div class="hdr-logo-area" onclick="goBack()">
+      <img class="hdr-logo-img" id="hdrLogoImg" src="" alt="لوجو">
+      <div class="hdr-logo-text" id="hdrLogoText">مينيو</div>
     </div>
+    <div class="hdr-spacer" id="hdrSp"></div>
+    <button class="theme-toggle" id="themeToggle" type="button" onclick="toggleTheme()" aria-label="تفعيل الوضع الفاتح" title="تفعيل الوضع الفاتح"><i class="fas fa-sun" aria-hidden="true"></i></button>
+  </header>
+
+  <div id="brView">
+    <div class="hero" id="heroSection">
+      <img class="hero-cover" id="heroCover" src="" alt="صورة المطعم">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-tag"><i class="fas fa-circle"></i> اشهر المطاعم</div>
+        <h1 class="hero-title" id="heroTitle">اكتشف المنيو</h1>
+        <p class="hero-sub" id="heroSub">اختار الفرع وشوف المنيو كامل ده</p>
+        <div class="hero-line"></div>
+      </div>
+    </div>
+    <div class="delivery-hours-banner" aria-label="مواعيد التوصيل">
+      <span class="delivery-hours-icon"><i class="fas fa-headset"></i></span>
+      <div class="delivery-hours-content">
+        <span class="delivery-hours-label">مواعيد التوصيل</span>
+        <strong class="delivery-hours-time">كل يوم، من <bdi dir="ltr">7</bdi> صباحًا إلى <bdi dir="ltr">8</bdi> مساءً</strong>
+      </div>
+    </div>
+    <div class="info-sec" id="infoSection"><div class="info-grid" id="infoGrid"></div></div>
+    <div class="stats" id="statsArea"></div>
+    <div class="sec-hdr">
+      <div class="sec-icon"><i class="fas fa-store"></i></div>
+      <div class="sec-title">الفروع</div>
+      <div class="sec-count" id="brCount"></div>
+    </div>
+    <div class="br-grid" id="brGrid"></div>
+  </div>
+
+  <div id="menuView">
+    <div class="mv-herd" id="mvHerd"></div>
+    <div class="search">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="ابحث في المنيو..." id="searchIn" oninput="filterMenu()">
+      </div>
+    </div>
+    <div class="cats" id="catsArea"></div>
+    <div class="mg" id="mGrid"></div>
+  </div>
+
+  <footer class="ftr">
+    <img class="ftr-logo" id="ftrLogo" src="" alt="لوجو">
+    <div>© <span id="fY"></span> جميع الحقوق محفوظة</div>
+    <div class="ftr-love">صنع بـ ❤️</div>
+  </footer>
 </div>
 
-<!-- Branch Modal -->
-<div id="bMo" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
-    <div class="bg-[#1c1917] rounded-2xl border border-stone-700/50 w-full max-w-md p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold" id="bMT">إضافة فرع</h3><button onclick="cM()" class="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center hover:bg-stone-700"><span class="iconify text-stone-400" data-icon="mdi:close"></span></button></div>
-        <div class="space-y-4">
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">اسم الفرع</label><input id="bN" type="text" placeholder="فرع المعادي" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">العنوان</label><input id="bA" type="text" placeholder="9 شارع 9" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">لينك Google Maps</label><input id="bL" type="url" placeholder="https://maps.app.goo.gl/..." class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50" style="direction:ltr;text-align:left"></div>
-            <div class="flex gap-4">
-                <label class="flex items-center gap-2 text-sm text-stone-300 cursor-pointer"><input type="checkbox" id="bDM" class="accent-amber-500 w-4 h-4">درايف موت</label>
-                <label class="flex items-center gap-2 text-sm text-stone-300 cursor-pointer"><input type="checkbox" id="bTA" class="accent-amber-500 w-4 h-4">تيك أواي</label>
-            </div>
+<button class="fab-call" id="fabCall" onclick="callHotline()" aria-label="اتصل"><i class="fas fa-phone"></i></button>
+<a class="fab-wa" id="fabWa" href="#" target="_blank" rel="noopener" aria-label="واتساب"><i class="fab fa-whatsapp"></i></a>
 
-            <!-- ═══ مواعيد العمل الخاصة بالفرع ═══ -->
-            <div class="border-t border-stone-800 pt-4 mt-2">
-                <label class="block text-xs font-medium text-amber-400 mb-2 flex items-center gap-1"><span class="iconify" data-icon="mdi:clock-outline"></span> مواعيد العمل (خاصة بالفرع)</label>
-                <div class="hours-section">
-                    <div class="grid grid-cols-1 gap-2">
-                        <div class="hours-row-compact"><span class="day-label">السبت</span><div class="flex items-center gap-2 flex-1"><input id="bh0s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh0e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الأحد</span><div class="flex items-center gap-2 flex-1"><input id="bh1s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh1e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الاثنين</span><div class="flex items-center gap-2 flex-1"><input id="bh2s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh2e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الثلاثاء</span><div class="flex items-center gap-2 flex-1"><input id="bh3s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh3e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الأربعاء</span><div class="flex items-center gap-2 flex-1"><input id="bh4s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh4e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الخميس</span><div class="flex items-center gap-2 flex-1"><input id="bh5s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh5e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                        <div class="hours-row-compact"><span class="day-label">الجمعة</span><div class="flex items-center gap-2 flex-1"><input id="bh6s" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><span class="text-stone-500 text-xs">-</span><input id="bh6e" type="time" class="flex-1 bg-[#0c0a09]/80 border border-stone-700/50 rounded-lg px-3 py-1.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"></div></div>
-                    </div>
-                    <div class="mt-2 text-xs text-stone-500 flex items-center gap-1"><span class="iconify" data-icon="mdi:information-outline" style="font-size:12px"></span> لو سابتها فاضية هياخد المواعيد العامة</div>
-                </div>
-            </div>
+<div class="toast" id="toast"><i class="fas fa-info-circle"></i><span id="toastMsg"></span></div>
 
-            <button onclick="svB()" id="svBB" class="w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] font-bold hover:shadow-lg transition-all">إضافة</button>
-        </div>
-    </div>
-</div>
-
-<!-- Item Modal -->
-<div id="iMo" class="fixed inset-0 z-[70] hidden items-center justify-center p-4">
-    <div class="bg-[#1c1917] rounded-2xl border border-stone-700/50 w-full max-w-lg p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold" id="iMT">إضافة صنف</h3><button onclick="cM()" class="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center hover:bg-stone-700"><span class="iconify text-stone-400" data-icon="mdi:close"></span></button></div>
-        <div class="space-y-4">
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">اسم الصنف</label><input id="iN" type="text" placeholder="شاورما فراخ" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">الوصف</label><textarea id="iDe" rows="2" placeholder="وصف قصير..." class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50 resize-none"></textarea></div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-1">القسم (التصنيف)</label>
-                <select id="iCat" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50">
-                    <option value="">اختر القسم</option>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-medium text-stone-400 mb-2">نوع الصنف</label>
-                <div class="flex gap-2 flex-wrap">
-                    <button type="button" onclick="setItemTy('dish')" id="tyDish" class="pill-btn px-4 py-2 rounded-xl border border-stone-700/50 text-sm font-semibold hover:border-amber-500/50">طبق عادي</button>
-                    <button type="button" onclick="setItemTy('box')" id="tyBox" class="pill-btn px-4 py-2 rounded-xl border border-stone-700/50 text-sm font-semibold hover:border-amber-500/50">علب</button>
-                    <button type="button" onclick="setItemTy('bread')" id="tyBread" class="pill-btn px-4 py-2 rounded-xl border border-stone-700/50 text-sm font-semibold hover:border-amber-500/50">عيش</button>
-                    <button type="button" onclick="setItemTy('Men')" id="tyMen" class="pill-btn px-4 py-2 rounded-xl border border-stone-700/50 text-sm font-semibold hover:border-amber-500/50">كيلو</button>
-                </div>
-            </div>
-            <div id="priceSectionContainer"></div>
-            <div>
-                <label class="flex items-center gap-2 text-sm font-medium text-stone-300 mb-2 cursor-pointer">
-                    <input type="checkbox" id="allBrChk" onchange="toggleAllBr()" class="accent-amber-500 w-4 h-4">
-                    إضافة لكل الفروع مرة واحدة
-                </label>
-                <select id="iBr" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><option value="">اختر الفرع</option></select>
-            </div>
-            <div><label class="block text-xs font-medium text-stone-400 mb-1">الصورة</label><input id="iIm" type="file" accept="image/*" class="w-full text-sm text-stone-300 file:ml-3"><div id="iPr" class="mt-2 hidden"><img id="iPrI" class="w-full h-32 object-cover rounded-xl border border-stone-700/50"></div></div>
-            <button onclick="svI()" id="svIB" class="w-full py-3 rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 text-[#0c0a09] font-bold hover:shadow-lg transition-all">إضافة</button>
-        </div>
-    </div>
-</div>
-
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-const cloudName = 'dvvakfiud';
-const uploadPreset = 'Nagaf menuo';
 const fc={apiKey:"AIzaSyBor5YRDNrtxTbvwW-ev4krDQpES7CgSDY",authDomain:"nagaf-menuo-a04c3.firebaseapp.com",projectId:"nagaf-menuo-a04c3",storageBucket:"nagaf-menuo-a04c3.firebasestorage.app",messagingSenderId:"847128373372",appId:"1:847128373372:web:9a6cbf585914db0f5381f9",measurementId:"G-VBPSDN44S7"};
 firebase.initializeApp(fc);const db=firebase.firestore();
 
-const BRANCH_DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-const DAY_INDEX_MAP = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+const DEFAULTS = {
+  name: 'نجف',
+  logo: 'https://picsum.photos/seed/nagaflogo/200/200',
+  cover: 'https://picsum.photos/seed/nagafcover/1200/500',
+  hotline: '',
+  phone: '',
+  whatsapp: '',
+  description: 'أكل بيتي مصري أصيل',
+  address: '',
+  lat: 0, lng: 0,
+  hours: [
+    {day:'السبت',time:'12:00 م - 2:00 ص'},{day:'الأحد',time:'12:00 م - 2:00 ص'},{day:'الاثنين',time:'12:00 م - 2:00 ص'},{day:'الثلاثاء',time:'12:00 م - 2:00 ص'},{day:'الأربعاء',time:'12:00 م - 2:00 ص'},{day:'الخميس',time:'12:00 م - 3:00 ص'},{day:'الجمعة',time:'12:00 م - 3:00 ص'}
+  ],
+  callCenterHours: [
+    {day:'السبت',time:'7:00 ص - 8:00 م'},{day:'الأحد',time:'7:00 ص - 8:00 م'},{day:'الاثنين',time:'7:00 ص - 8:00 م'},{day:'الثلاثاء',time:'7:00 ص - 8:00 م'},{day:'الأربعاء',time:'7:00 ص - 8:00 م'},{day:'الخميس',time:'7:00 ص - 8:00 م'},{day:'الجمعة',time:'7:00 ص - 8:00 م'}
+  ]
+};
 
-let br=[],it=[],se={},cats=[],eB=null,eI=null,eCat=null,la=0, currentTy='dish', currentPrices=[];
+const DAY_NAMES = ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+
+let br=[],mi=[],settings={},selB=null,cDone=false,activeCat='الكل';
+let primaryBranches=[],legacyBranches=[],primaryMenuItems=[],legacyMenuItems=[],legacyItems=[];
+let liveSettingsReady=false,liveBranchesReady=false,liveItemsReady=false,legacyBranchesLoaded=false,legacyMenuLoaded=false;
+document.getElementById('fY').textContent=new Date().getFullYear();
 
 /* ═══════════════════════════════════════
-   دالة تحديد حالة الفرع (مفتوح/مقفول)
+   دوال المواعيد وحالة الفرع
    ═══════════════════════════════════════ */
-function parseTimeStr(t){
+
+function getTodayName(){
+  return DAY_NAMES[new Date().getDay()];
+}
+
+function parseTime(t){
   if(!t) return null;
-  const cleaned = String(t).trim();
-  const rangeMatch = cleaned.match(/(\d{1,2}:\d{2})\s*(?:ص|م|am|pm)?\s*[-–]\s*(\d{1,2}:\d{2})\s*(?:ص|م|am|pm)?/i);
-  if(rangeMatch){
-    const start = normalizeTimeToMinutes(rangeMatch[1]);
-    const end = normalizeTimeToMinutes(rangeMatch[2]);
-    return start === null || end === null ? null : {start, end};
+  const match=String(t).trim().match(/^(\d{1,2}):?(\d{0,2})\s*(ص|م|am|pm)?$/i);
+  if(!match) return null;
+  let hour=parseInt(match[1],10);
+  const minute=parseInt(match[2]||'0',10);
+  const period=(match[3]||'').toLowerCase();
+  if((period==='م'||period==='pm')&&hour!==12) hour+=12;
+  if((period==='ص'||period==='am')&&hour===12) hour=0;
+  if(hour>23||minute>59) return null;
+  return hour*60+minute;
+}
+
+function isBranchOpen(hours){
+  if(!hours||!hours.length) return {open:true,status:'open'};
+  const now=new Date();
+  const todayIndex=now.getDay();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const todayName=DAY_NAMES[todayIndex];
+  const yesterdayName=DAY_NAMES[(todayIndex+6)%7];
+  const todayHours=hours.find(h=>h.day===todayName);
+  const yesterdayHours=hours.find(h=>h.day===yesterdayName);
+  const getRange=dayHours=>{
+    if(!dayHours||!dayHours.time) return null;
+    const parts=dayHours.time.split('-');
+    if(parts.length<2) return null;
+    const start=parseTime(parts[0].trim());
+    const end=parseTime(parts[1].trim());
+    return start===null||end===null?null:{start,end};
+  };
+  const todayRange=getRange(todayHours);
+  const yesterdayRange=getRange(yesterdayHours);
+  let minutesUntilClose=null;
+
+  if(todayRange){
+    const close=todayRange.end<=todayRange.start?todayRange.end+1440:todayRange.end;
+    const adjustedNow=nowMin<todayRange.start&&todayRange.end<=todayRange.start?nowMin+1440:nowMin;
+    if(adjustedNow>=todayRange.start&&adjustedNow<close) minutesUntilClose=close-adjustedNow;
+  }
+  if(minutesUntilClose===null&&yesterdayRange&&yesterdayRange.end<yesterdayRange.start&&nowMin<yesterdayRange.end){
+    minutesUntilClose=yesterdayRange.end-nowMin;
   }
 
-  const singleMatch = cleaned.match(/(\d{1,2}):?(\d{0,2})\s*(ص|م|am|pm)?/i);
-  if(!singleMatch) return null;
-  const h = parseInt(singleMatch[1], 10);
-  const m = parseInt(singleMatch[2] || '0', 10);
-  const period = (singleMatch[3] || '').toLowerCase();
-  let hour = h;
-  if((period === 'م' || period === 'pm') && hour !== 12) hour += 12;
-  if((period === 'ص' || period === 'am') && hour === 12) hour = 0;
-  if(hour < 0 || hour > 23 || m < 0 || m > 59) return null;
-  return {start: hour * 60 + m, end: hour * 60 + m};
+  const open=minutesUntilClose!==null;
+  const status=!open?'closed':minutesUntilClose<=60?'closing':'open';
+  return {open,status};
 }
 
-function normalizeTimeToMinutes(value){
-  if(!value) return null;
-  const match = String(value).trim().match(/(\d{1,2}):?(\d{2})?\s*(ص|م|am|pm)?/i);
-  if(!match) return null;
-  let hour = parseInt(match[1], 10);
-  const minute = parseInt(match[2] || '0', 10);
-  const period = (match[3] || '').toLowerCase();
-  if((period === 'م' || period === 'pm') && hour !== 12) hour += 12;
-  if((period === 'ص' || period === 'am') && hour === 12) hour = 0;
-  if(hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
-  return hour * 60 + minute;
+function buildHoursHTML(hours,cssPrefix,showTitle,idSuffix){
+  if(!hours||!hours.length) return '';
+  const todayName=getTodayName();
+  const listId=`hours-${cssPrefix}-${idSuffix}`;
+  const today=hours.find(h=>h.day===todayName);
+  const todayTime=today&&today.time?today.time:'مغلق';
+  const title=showTitle?'مواعيد العمل':'المواعيد';
+  const rows=hours.map(h=>{
+    const isToday=h.day===todayName?' today':'';
+    return `<div class="${cssPrefix}-row${isToday}"><span class="hday">${h.day}</span><span class="htime" dir="ltr">${h.time||'مغلق'}</span></div>`;
+  }).join('');
+  return `<div class="${cssPrefix}"><button type="button" class="hours-toggle" aria-expanded="false" aria-controls="${listId}" onclick="toggleHours(event,'${listId}')"><span class="hours-toggle-main"><i class="fas fa-clock"></i><span>${title}</span></span><span class="hours-toggle-summary"><span>اليوم</span><span class="hours-time" dir="ltr">${todayTime}</span></span><i class="fas fa-chevron-down hours-chevron"></i></button><div id="${listId}" class="hours-list" hidden>${rows}</div></div>`;
 }
 
-function buildTimeRange(startValue, endValue){
-  const start = (startValue || '').trim();
-  const end = (endValue || '').trim();
-  if(!start && !end) return '';
-  if(!start || !end) return start || end;
-  return `${start} - ${end}`;
+function toggleHours(event,listId){
+  event.preventDefault();
+  event.stopPropagation();
+  const list=document.getElementById(listId);
+  const button=event.currentTarget;
+  if(!list||!button) return;
+  const expanded=button.getAttribute('aria-expanded')==='true';
+  button.setAttribute('aria-expanded',String(!expanded));
+  list.hidden=expanded;
 }
 
-function loadTimeRange(startId, endId, value){
-  const s = document.getElementById(startId);
-  const e = document.getElementById(endId);
-  if(!s || !e) return;
-  const parts = value ? value.split('-') : ['',''];
-  const start = parts[0] ? String(parts[0]).trim() : '';
-  const end = parts[1] ? String(parts[1]).trim() : '';
-  const normalizedStart = normalizeTimeValue(start);
-  const normalizedEnd = normalizeTimeValue(end);
-  s.value = normalizedStart;
-  e.value = normalizedEnd;
+function extractCoords(link){
+  if(!link)return null;
+  let m=link.match(/[?&]q=([+-]?\d+\.?\d*),([+-]?\d+\.?\d*)/);
+  if(m)return{lat:+m[1],lng:+m[2]};
+  m=link.match(/@([+-]?\d+\.?\d*),([+-]?\d+\.?\d*)/);
+  if(m)return{lat:+m[1],lng:+m[2]};
+  m=link.match(/!3d([+-]?\d+\.?\d*)!4d([+-]?\d+\.?\d*)/);
+  if(m)return{lat:+m[1],lng:+m[2]};
+  return null;
 }
 
-function normalizeTimeValue(value){
-  if(!value) return '';
-  const text = String(value).trim();
-  const match = text.match(/(\d{1,2}):?(\d{2})?\s*(ص|م|am|pm)?/i);
-  if(!match) return '';
-  let hour = parseInt(match[1], 10);
-  const minute = parseInt(match[2] || '0', 10);
-  const period = (match[3] || '').toLowerCase();
-  if((period === 'م' || period === 'pm') && hour !== 12) hour += 12;
-  if((period === 'ص' || period === 'am') && hour === 12) hour = 0;
-  if(hour < 0 || hour > 23 || minute < 0 || minute > 59) return '';
-  return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+function applySettings(s){
+  const name=s.siteName||DEFAULTS.name;
+  const logo=s.logo||s.heroImage||DEFAULTS.logo;
+  const cover=document.documentElement.dataset.theme==='light'?(s.heroImageLight||s.heroImage||DEFAULTS.cover):(s.heroImage||DEFAULTS.cover);
+  const hotline=s.callCenter||DEFAULTS.hotline;
+  const phone=s.phone||DEFAULTS.phone;
+  const whatsapp=s.whatsapp||DEFAULTS.whatsapp;
+  const desc=s.siteDesc||s.aboutText||DEFAULTS.description;
+
+  document.getElementById('hdrLogoText').textContent=name;
+  if(document.getElementById('hdrLogoImg')) document.getElementById('hdrLogoImg').src=logo;
+  document.getElementById('heroCover').src=cover;
+  document.getElementById('heroTitle').textContent=name;
+  document.getElementById('heroSub').textContent=desc;
+  if(document.getElementById('ftrLogo')) document.getElementById('ftrLogo').src=logo;
+  document.title=name+' - مينيو';
+
+  if(hotline){
+    document.getElementById('hotlineLink').textContent=hotline;
+    document.getElementById('hotlineLink').href='tel:'+hotline;
+    document.getElementById('hotlineBar').style.display='';
+  }else document.getElementById('hotlineBar').style.display='none';
+
+  if(whatsapp){
+    document.getElementById('fabWa').href='https://wa.me/'+whatsapp;
+    document.getElementById('fabWa').style.display='';
+  }else document.getElementById('fabWa').style.display='none';
+
+  const infoGrid=document.getElementById('infoGrid');
+  let cards='';
+
+  const addr=s.address||DEFAULTS.address;
+  const mapLink=s.mapLink||'';
+  const coords=extractCoords(mapLink);
+  const gpsUrl=coords?`https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lng}`:(mapLink||'');
+  if(addr||gpsUrl){
+    cards+=`<div class="info-card reveal">
+      <div class="info-ic red"><i class="fas fa-location-dot"></i></div>
+      <div class="info-body">
+        <div class="info-label">العنوان الرئيسي</div>
+        ${addr?`<div class="info-val">${addr}</div>`:''}
+        ${gpsUrl?`<a href="${gpsUrl}" target="_blank" rel="noopener" class="gps-link"><i class="fas fa-map-location-dot"></i> فتح في الخريطة</a>`:''}
+      </div>
+    </div>`;
+  }
+  infoGrid.innerHTML=cards;
 }
 
-function getBranchStatus(hours){
-  if(!hours||!hours.length) return {open:true,status:'open',label:'مفتوح'};
-  const now=new Date();
-  const todayName=DAY_INDEX_MAP[now.getDay()];
-  const todayHours=hours.find(h=>h.day===todayName);
-  if(!todayHours||!todayHours.time) return {open:false,status:'closed',label:'مقفول'};
-  
-  const parts=todayHours.time.split('-');
-  if(parts.length<2) return {open:true,status:'open',label:'مفتوح'};
-  
-  const openMin = parseTimeStr(parts[0].trim());
-  const closeMin = parseTimeStr(parts[1].trim());
-  const startMin = typeof openMin === 'object' ? openMin.start : openMin;
-  const endMin = typeof closeMin === 'object' ? closeMin.start : closeMin;
-  if(startMin===null||endMin===null) return {open:true,status:'open',label:'مفتوح'};
-  
-  const nowMin=now.getHours()*60+now.getMinutes();
-  
-  let adjustedClose=endMin;
-  if(endMin<startMin) adjustedClose+=24*60;
-  let adjustedNow=nowMin;
-  if(nowMin<startMin&&endMin<startMin) adjustedNow+=24*60;
-  
-  const isOpen=adjustedNow>=startMin&&adjustedNow<adjustedClose;
-  const minutesUntilClose=adjustedClose-adjustedNow;
-  
-  if(!isOpen) return {open:false,status:'closed',label:'مقفول'};
-  if(minutesUntilClose<=60) return {open:true,status:'closing',label:'هيقفل قريب'};
-  return {open:true,status:'open',label:'مفتوح'};
+function callHotline(){
+  const hl = settings.callCenter || settings.phone || '';
+  if(hl) window.location.href = 'tel:' + hl;
 }
 
-async function uploadToCld(file) {
-    const url = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', uploadPreset);
-    try {
-        const res = await fetch(url, { method: 'POST', body: formData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error?.message || 'Upload Failed');
-        return data.secure_url;
-    } catch (e) { throw new Error(e.message); }
+function applyTheme(theme,save=true){
+  const isLight=theme==='light';
+  document.documentElement.dataset.theme=isLight?'light':'dark';
+  const heroCover=document.getElementById('heroCover');
+  if(heroCover) heroCover.src=isLight?(settings.heroImageLight||settings.heroImage||DEFAULTS.cover):(settings.heroImage||DEFAULTS.cover);
+  const toggle=document.getElementById('themeToggle');
+  if(toggle){
+    const nextTheme=isLight?'dark':'light';
+    const label=`تفعيل الوضع ${isLight?'الداكن':'الفاتح'}`;
+    toggle.innerHTML=`<i class="fas fa-${isLight?'moon':'sun'}" aria-hidden="true"></i>`;
+    toggle.setAttribute('aria-label',label);
+    toggle.title=label;
+  }
+  if(save){try{localStorage.setItem('nagaf-theme',isLight?'light':'dark')}catch(e){}}
 }
 
-function ca(){const n=Date.now();if(n-la<1500)return false;la=n;return true}
-function ts(m,t='s'){const c=document.getElementById('tB'),e=document.createElement('div');e.className='toast';e.style.background=t==='e'?'linear-gradient(135deg,#dc2626,#b91c1c)':'linear-gradient(135deg,#059669,#047857)';e.textContent=m;c.appendChild(e);setTimeout(()=>e.remove(),3000)}
-function sM(id){document.getElementById('ov').classList.remove('hidden');const m=document.getElementById(id);m.classList.remove('hidden');m.classList.add('flex')}
-function cM(){document.getElementById('ov').classList.add('hidden');['bMo','iMo','catMo'].forEach(id=>{const m=document.getElementById(id);m.classList.add('hidden');m.classList.remove('flex')});eB=null;eI=null;eCat=null;currentTy='dish';currentPrices=[]}
-function ec(l){if(!l)return null;let m=l.match(/[?&]q=([+-]?\d+\.?\d*),([+-]?\d+\.?\d*)/);if(m)return{lat:+m[1],lng:+m[2]};m=l.match(/@([+-]?\d+\.?\d*),([+-]?\d+\.?\d*)/);if(m)return{lat:+m[1],lng:+m[2]};m=l.match(/!3d([+-]?\d+\.?\d*)!4d([+-]?\d+\.?\d*)/);if(m)return{lat:+m[1],lng:+m[2]};return null}
-
-document.getElementById('bL').addEventListener('input',function(){const l=this.value.trim();if(l){const c=ec(l);if(c)ts('تم قراءة الموقع بنجاح')}});
-document.getElementById('sHI').addEventListener('change',function(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('hPI').src=ev.target.result;document.getElementById('hP').classList.remove('hidden')};r.readAsDataURL(f)}});
-document.getElementById('sHIL').addEventListener('change',function(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('hLightPI').src=ev.target.result;document.getElementById('hLightP').classList.remove('hidden')};r.readAsDataURL(f)}});
-document.getElementById('sLogo').addEventListener('change',function(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('logoPI').src=ev.target.result;document.getElementById('logoP').classList.remove('hidden')};r.readAsDataURL(f)}});
-document.getElementById('sBGI').addEventListener('change',function(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('bgPI').src=ev.target.result;document.getElementById('bgP').classList.remove('hidden')};r.readAsDataURL(f)}});
-document.getElementById('iIm').addEventListener('change',function(e){const f=e.target.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('iPrI').src=ev.target.result;document.getElementById('iPr').classList.remove('hidden')};r.readAsDataURL(f)}});
-
-function setItemTy(type) { currentTy = type; currentPrices = []; document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active')); if(type==='dish') document.getElementById('tyDish').classList.add('active'); else if(type==='box') document.getElementById('tyBox').classList.add('active'); else if(type==='bread') document.getElementById('tyBread').classList.add('active'); else if(type==='Men') document.getElementById('tyMen').classList.add('active'); if(type === 'dish') { currentPrices.push({ size: 'dish', label: 'طبق', price: '' }); } else { addPriceRow(); } renderPriceRows(); }
-function addPriceRow() { currentPrices.push({ size: '', label: '', price: '' }); renderPriceRows(); }
-function removePriceRow(index) { currentPrices.splice(index, 1); renderPriceRows(); }
-function updatePriceRow(index, field, value) {
-    currentPrices[index][field] = value;
-    if(field === 'label') currentPrices[index].size = value;
-    if(field === '_file') {
-        const preview=document.getElementById(`priceImagePreview-${index}`);
-        if(preview&&value){
-            if(currentPrices[index]._previewUrl) URL.revokeObjectURL(currentPrices[index]._previewUrl);
-            currentPrices[index]._previewUrl=URL.createObjectURL(value);
-            preview.src=currentPrices[index]._previewUrl;
-            preview.classList.remove('hidden');
-        }
-    }
-}
-function normalizeSizeLabel(label, index) { const value=String(label||'').trim(); if(!value)return ''; const labels={small:'صغير',quarter:'صغير',quarterKilo:'صغير',eighthKilo:'صغير','ربع':'صغير',medium:'وسط',half:'وسط',halfKilo:'وسط','نص':'وسط',large:'كبير','كبير':'كبير'}; return labels[value]||value; }
-
-function getPriceChoices(type) {
-    if(type === 'bread') return ['فرنساوي','شامي','كايزر','باتيه','بان','كورتر'];
-    if(type === 'Men') return ['ربع كيلو','نص كيلو','كيلو','فرخة كاملة','نص فرخة','ربع فرخة'];
-    return ['صغير','وسط','كبير'];
-}
-
-function renderPriceRows() {
-    const container = document.getElementById('priceSectionContainer');
-    let html = '';
-    if(currentTy === 'dish') {
-        html = `<div><label class="block text-xs font-medium text-stone-400 mb-1">السعر (جنيه)</label><input type="number" placeholder="0" min="0" step="0.5" value="${currentPrices[0]?.price || ''}" oninput="updatePriceRow(0, 'price', this.value)" class="w-full bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-4 py-2.5 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"></div>`;
-    } else {
-        const choices = getPriceChoices(currentTy);
-        const choiceLabel = currentTy === 'bread' ? 'نوع العيش' : currentTy === 'Men' ? 'الحجم أو النوع' : 'الحجم';
-        html = `<div class="space-y-3"><label class="block text-xs font-medium text-stone-400">${choiceLabel} والأسعار</label>${currentPrices.map((p, i) => {
-            const selectedLabel = normalizeSizeLabel(p.label || p.size, i);
-            const rowChoices = selectedLabel && !choices.includes(selectedLabel) ? [selectedLabel, ...choices] : choices;
-            return `<div class="bg-stone-900/50 p-3 rounded-xl border border-stone-800/50 space-y-2"><div class="flex gap-2 items-center"><select onchange="updatePriceRow(${i}, 'label', this.value)" class="flex-1 min-w-0 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 focus:outline-none focus:border-amber-500/50"><option value="">اختر ${choiceLabel}</option>${rowChoices.map(choice => `<option value="${choice}" ${selectedLabel===choice?'selected':''}>${choice}</option>`).join('')}</select><input type="number" placeholder="السعر" value="${p.price}" oninput="updatePriceRow(${i}, 'price', this.value)" class="w-24 bg-[#0c0a09]/80 border border-stone-700/50 rounded-xl px-3 py-2 text-sm text-stone-200 placeholder-stone-600 focus:outline-none focus:border-amber-500/50"><button onclick="removePriceRow(${i})" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20 flex-shrink-0"><span class="iconify text-red-400 text-sm" data-icon="mdi:delete"></span></button></div><div class="flex items-center gap-2"><label class="text-xs text-stone-500 flex-shrink-0">صورة الحجم:</label><input type="file" accept="image/*" onchange="updatePriceRow(${i}, '_file', this.files[0])" class="flex-1 text-xs text-stone-300 file:ml-2"><img id="priceImagePreview-${i}" src="${p.imageUrl || ''}" class="w-10 h-10 rounded-lg object-cover border border-stone-700/50 ${p.imageUrl ? '' : 'hidden'}"></div></div>`;
-        }).join('')}<button onclick="addPriceRow()" class="w-full py-2 rounded-xl border border-dashed border-stone-700 text-stone-400 text-xs font-semibold hover:border-amber-500/50 hover:text-amber-400 transition-all">+ خيار وسعر</button></div>`;
-    }
-    container.innerHTML = html;
-}
-
-function fillPrices(item) { setItemTy(item.itemType || 'dish'); if(item.prices && item.prices.length > 0) { currentPrices = item.itemType==='dish'?item.prices:item.prices.map((price,index)=>{const label=normalizeSizeLabel(price.label||price.size,index);return {...price,size:label,label};}); renderPriceRows(); } }
-function toggleAllBr() { const chk = document.getElementById('allBrChk'); const sel = document.getElementById('iBr'); sel.disabled = chk.checked; if(chk.checked) sel.value = ''; }
-
-// Settings
-function lSF(){
-    if(se.siteName)document.getElementById('sN').value=se.siteName;
-    if(se.siteDesc)document.getElementById('sD').value=se.siteDesc;
-    if(se.aboutText)document.getElementById('sA').value=se.aboutText;
-    if(se.whatsapp)document.getElementById('sW').value=se.whatsapp;
-    if(se.phone)document.getElementById('sP').value=se.phone;
-    if(se.callCenter)document.getElementById('sCC').value=se.callCenter;
-    if(se.primaryColor)document.getElementById('sC').value=se.primaryColor;
-    if(se.bgColor)document.getElementById('sBG').value=se.bgColor;
-    if(se.heroImageLight){document.getElementById('hLightPI').src=se.heroImageLight;document.getElementById('hLightP').classList.remove('hidden')}
-    if(se.hours && se.hours.length === 7){ for(let i=0; i<7; i++){ const s = document.getElementById('h'+i+'s'); const e = document.getElementById('h'+i+'e'); if(s && e) { const range = se.hours[i].time || ''; const [start, end] = range.split('-'); s.value = normalizeTimeValue(start || range); e.value = normalizeTimeValue(end || ''); } } }
-    if(se.callCenterHours && se.callCenterHours.length === 7){ for(let i=0; i<7; i++){ const s = document.getElementById('ch'+i+'s'); const e = document.getElementById('ch'+i+'e'); if(s && e) { const range = se.callCenterHours[i].time || ''; const [start, end] = range.split('-'); s.value = normalizeTimeValue(start || range); e.value = normalizeTimeValue(end || ''); } } }
-}
-
-async function saveSt(){
-    if(!ca()){ts('استنى...','e');return}
-    const btn=document.getElementById('saveStB');btn.textContent='جاري...';btn.disabled=true;
-    try{
-        const days = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة'];
-        const hoursArr = []; const callCenterHoursArr = [];
-        for(let i=0; i<7; i++){ const s = document.getElementById('h'+i+'s'); const e = document.getElementById('h'+i+'e'); hoursArr.push({day: days[i], time: buildTimeRange(s ? s.value.trim() : '', e ? e.value.trim() : '')}); }
-        for(let i=0; i<7; i++){ const s = document.getElementById('ch'+i+'s'); const e = document.getElementById('ch'+i+'e'); callCenterHoursArr.push({day: days[i], time: buildTimeRange(s ? s.value.trim() : '', e ? e.value.trim() : '')}); }
-        const d={siteName:document.getElementById('sN').value.trim(), siteDesc:document.getElementById('sD').value.trim(), aboutText:document.getElementById('sA').value.trim(), whatsapp:document.getElementById('sW').value.trim(), callCenter:document.getElementById('sCC').value.trim(), phone:document.getElementById('sP').value.trim(), primaryColor:document.getElementById('sC').value, bgColor:document.getElementById('sBG').value, hours: hoursArr, callCenterHours: callCenterHoursArr};
-        const logoFile=document.getElementById('sLogo').files[0];if(logoFile){d.logo=await uploadToCld(logoFile)}
-        const hf=document.getElementById('sHI').files[0];if(hf){d.heroImage=await uploadToCld(hf)}
-        const hlf=document.getElementById('sHIL').files[0];if(hlf){d.heroImageLight=await uploadToCld(hlf)}
-        const bf=document.getElementById('sBGI').files[0];if(bf){d.bgImage=await uploadToCld(bf)}
-        await db.collection('settings').doc('main').set(d,{merge:true});ts('تم الحفظ ✓')
-    }catch(e){ts('خطأ: '+e.message,'e')}finally{btn.textContent='حفظ الإعدادات';btn.disabled=false}
-}
-
-// Categories
-function sCatM(id=null){
-    eCat=id;
-    if(id){const c=cats.find(x=>x.id===id);if(c){document.getElementById('catN').value=c.name||'';}document.getElementById('catMT').textContent='تعديل القسم';document.getElementById('svCatB').textContent='تحديث'}
-    else{document.getElementById('catN').value='';document.getElementById('catMT').textContent='إضافة قسم';document.getElementById('svCatB').textContent='إضافة'}
-    sM('catMo')
-}
-
-async function svCat(){
-    if(!ca()){ts('استنى...','e');return}
-    const n=document.getElementById('catN').value.trim();
-    if(!n){ts('اكتب اسم القسم','e');return}
-    const btn=document.getElementById('svCatB');btn.textContent='جاري...';btn.disabled=true;
-    try{
-        const d={name:n};
-        if(eCat){await db.collection('categories').doc(eCat).update(d);ts('تم التحديث ✓')}
-        else{d.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection('categories').add(d);ts('تم الإضافة ✓')}
-        cM()
-    }catch(e){ts('خطأ','e')}finally{btn.textContent=eCat?'تحديث':'إضافة';btn.disabled=false}
-}
-
-async function dCat(id){if(!ca())return;if(!confirm('مسح القسم؟ (الأصناف التابعة له لن تمسح)'))return;try{await db.collection('categories').doc(id).delete();ts('تم المسح ✓')}catch(e){ts('خطأ','e')}}
-
-function rACat(){
-    const c=document.getElementById('aCatL'),n=document.getElementById('nCat');
-    document.getElementById('catC').textContent=cats.length?`(${cats.length})`:'';
-    const catOpts = cats.map(c=>`<option value="${c.name}">${c.name}</option>`).join('');
-    document.getElementById('iCat').innerHTML='<option value="">اختر القسم</option>'+catOpts;
-    document.getElementById('aCatF').innerHTML='<option value="">كل الأقسام</option>'+catOpts;
-    if(!cats.length){c.innerHTML='';n.classList.remove('hidden');return}
-    n.classList.add('hidden');
-    c.innerHTML=cats.map(c=>{
-        const cnt=it.filter(x=>x.category===c.name).length;
-        return`<div class="bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800/50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0"><span class="iconify text-amber-500" data-icon="mdi:tag"></span></div>
-                    <div class="min-w-0">
-                        <div class="font-semibold text-sm text-white truncate">${c.name}</div>
-                        <div class="text-xs text-stone-500 truncate">${cnt} صنف</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-1 flex-shrink-0">
-                    <button onclick="sCatM('${c.id}')" class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center hover:bg-amber-500/20"><span class="iconify text-amber-400 text-sm" data-icon="mdi:pencil"></span></button>
-                    <button onclick="dCat('${c.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20"><span class="iconify text-red-400 text-sm" data-icon="mdi:delete"></span></button>
-                </div>
-            </div>
-        </div>`}).join('');
+function toggleTheme(){
+  applyTheme(document.documentElement.dataset.theme==='light'?'dark':'light');
 }
 
 /* ═══════════════════════════════════════
-   الفروع - مع المواعيد
+   خلفية الكانفاس
    ═══════════════════════════════════════ */
-function sBM(id=null){
-    eB=id;
-    for(let i=0;i<7;i++){
-        const s=document.getElementById('bh'+i+'s');
-        const e=document.getElementById('bh'+i+'e');
-        if(s) s.value='';
-        if(e) e.value='';
+!function(){
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');
+  let w,h,pts=[],mouse={x:-1000,y:-1000};
+  function resize(){w=c.width=innerWidth;h=c.height=innerHeight;pts=[];for(let i=0;i<50;i++)pts.push({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.2+.3,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,o:Math.random()*.3+.05,phase:Math.random()*Math.PI*2,clr:Math.random()>.5?[158,0,1]:[11,11,122]});}
+  function draw(t){ctx.clearRect(0,0,w,h);for(let i=0;i<pts.length;i++){const p=pts[i];p.x+=p.vx;p.y+=p.vy;if(p.x<-10)p.x=w+10;if(p.x>w+10)p.x=-10;if(p.y<-10)p.y=h+10;if(p.y>h+10)p.y=-10;const dx=mouse.x-p.x,dy=mouse.y-p.y,dist=Math.sqrt(dx*dx+dy*dy);if(dist<150){const f=(150-dist)/150*.15;p.vx+=dx/dist*f;p.vy+=dy/dist*f}p.vx*=.99;p.vy*=.99;const glow=Math.sin(t*.001+p.phase)*.5+.5;ctx.beginPath();ctx.arc(p.x,p.y,p.r+glow*.4,0,Math.PI*2);ctx.fillStyle=`rgba(${p.clr[0]},${p.clr[1]},${p.clr[2]},${p.o+glow*.08})`;ctx.fill();for(let j=i+1;j<pts.length;j++){const p2=pts[j],dx2=p.x-p2.x,dy2=p.y-p2.y,d2=dx2*dx2+dy2*dy2;if(d2<12000){ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(p2.x,p2.y);ctx.strokeStyle=`rgba(${p.clr[0]},${p.clr[1]},${p.clr[2]},${.025*(1-d2/12000)})`;ctx.lineWidth=.5;ctx.stroke()}}}requestAnimationFrame(draw);}
+  resize();requestAnimationFrame(draw);addEventListener('resize',resize);addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+}();
+
+addEventListener('scroll',()=>{document.getElementById('hdr').classList.toggle('scrolled',scrollY>20)});
+function toast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000)}
+function animCounters(){if(cDone)return;cDone=true;document.querySelectorAll('.st-num').forEach(el=>{const tgt=+el.dataset.t;if(!tgt){el.textContent='0';return}let cur=0;const inc=Math.max(1,Math.ceil(tgt/50));const t=setInterval(()=>{cur+=inc;if(cur>=tgt){cur=tgt;clearInterval(t)}el.textContent=cur},25);});}
+
+function initTilt(){document.querySelectorAll('.br-card').forEach(card=>{const inner=card.querySelector('.br-card-in');let raf=null;card.addEventListener('mousemove',e=>{if(raf)cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;inner.style.transform=`rotateY(${-x*14}deg) rotateX(${y*10}deg) scale3d(1.03,1.03,1.03)`;inner.style.boxShadow=`${-x*20}px ${y*20}px 60px rgba(0,0,0,.5),${-x*10}px ${y*10}px 30px rgba(158,0,1,.06)`;});});card.addEventListener('mouseleave',()=>{inner.style.transform='rotateY(0) rotateX(0) scale3d(1,1,1)';inner.style.boxShadow=''});});}
+function initReveal(){const obs=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.classList.add('vis');obs.unobserve(x.target)}})},{threshold:.1});document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));}
+
+function renderStats(){const a=document.getElementById('statsArea');const bc=br.length,mc=mi.length,cc=new Set(mi.map(i=>i.category||i.cat||'')).size;a.innerHTML=`<div class="st-card reveal"><i class="fas fa-store st-icon"></i><span class="st-num" data-t="${bc}">0</span><div class="st-label">فرع</div></div><div class="st-card reveal"><i class="fas fa-utensils st-icon"></i><span class="st-num" data-t="${mc}">0</span><div class="st-label">صنف</div></div><div class="st-card reveal"><i class="fas fa-layer-group st-icon"></i><span class="st-num" data-t="${cc}">0</span><div class="st-label">تصنيف</div></div>`;document.getElementById('brCount').textContent=bc;setTimeout(()=>{animCounters();initReveal()},100);}
+
+function getGpsUrl(b){if(b.mapLink){const c=extractCoords(b.mapLink);if(c) return `https://www.google.com/maps/search/?api=1&query=${c.lat},${c.lng}`;return b.mapLink;}if(b.location && b.location.lat && b.location.lng){return `https://www.google.com/maps/search/?api=1&query=${b.location.lat},${b.location.lng}`;}const addr=b.address||b.addr||'';if(addr) return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;return null;}
+
+/* ═══════════════════════════════════════
+   عرض الفروع مع المواعيد
+   ═══════════════════════════════════════ */
+  function compareBranchOrder(a,b){
+    const aHasOrder=Number.isFinite(a.sortOrder),bHasOrder=Number.isFinite(b.sortOrder);
+    if(aHasOrder&&bHasOrder&&a.sortOrder!==b.sortOrder)return a.sortOrder-b.sortOrder;
+    if(aHasOrder!==bHasOrder)return aHasOrder?-1:1;
+    const aCreated=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0;
+    const bCreated=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;
+    return bCreated-aCreated;
+  }
+
+  function refreshLiveViews(){
+    br=(primaryBranches.length?primaryBranches:legacyBranches).slice().sort(compareBranchOrder);
+    mi=primaryMenuItems.length?primaryMenuItems:legacyMenuItems.length?legacyMenuItems:legacyItems;
+    applySettings(settings);
+    cDone=false;
+    renderStats();
+    renderBranches();
+    if(selB){
+      const currentBranch=br.find(branch=>branch.id===selB.id);
+      if(currentBranch){
+        selB=currentBranch;
+        renderMvHeader();
+        renderCats();
+        renderMenu();
+      }else goBack();
     }
+    if(liveSettingsReady&&liveBranchesReady&&liveItemsReady) document.getElementById('loader').classList.add('out');
+  }
+
+  function renderBranches(){
+  const g=document.getElementById('brGrid');
+  if(!br.length){g.innerHTML='<div class="empty"><i class="fas fa-store-slash"></i><p>لا توجد فروع حالياً</p></div>';return}
+  
+  g.innerHTML=br.map((b,i)=>{
+    const img=b.image||b.img||b.photo||b.cover||'';
+    const name=b.name||b.n||'فرع';
+    const desc=b.desc||b.description||b.info||'';
+    const addr=b.address||b.addr||b.location||'';
+    const phone=b.phone||b.tel||'';
+    const city=b.city||b.area||'';
+    const items=mi.filter(m=>(m.branchId||m.bid||m.branch)===b.id).length;
+    const gpsUrl=getGpsUrl(b);
+    const branchHours=b.hours||[];
+    const hoursHtml=buildHoursHTML(branchHours,'br-hours',true,`branch-${i}`);
+    const statusInfo=isBranchOpen(branchHours);
     
-    if(id){
-        const b=br.find(x=>x.id===id);
-        if(b){
-            document.getElementById('bN').value=b.name||'';
-            document.getElementById('bA').value=b.address||'';
-            document.getElementById('bL').value=b.mapLink||'';
-            document.getElementById('bDM').checked=b.driveThru||false;
-            document.getElementById('bTA').checked=b.takeAway||false;
-            if(b.hours && b.hours.length===7){
-                for(let i=0;i<7;i++){
-                    const s=document.getElementById('bh'+i+'s');
-                    const e=document.getElementById('bh'+i+'e');
-                    if(s && e) {
-                        const range = b.hours[i].time || '';
-                        const [start, end] = range.split('-');
-                        s.value = normalizeTimeValue(start || range);
-                        e.value = normalizeTimeValue(end || '');
-                    }
-                }
-            }
-        }
-        document.getElementById('bMT').textContent='تعديل';
-        document.getElementById('svBB').textContent='تحديث';
-    } else {
-        document.getElementById('bN').value='';
-        document.getElementById('bA').value='';
-        document.getElementById('bL').value='';
-        document.getElementById('bDM').checked=false;
-        document.getElementById('bTA').checked=false;
-        document.getElementById('bMT').textContent='إضافة فرع';
-        document.getElementById('svBB').textContent='إضافة';
+    let statusClass='br-status';
+    if(statusInfo.status==='closed') statusClass+=' br-status-closed';
+    else if(statusInfo.status==='closing') statusClass+=' br-status-closing';
+
+    const statusLabelMap={open:'مفتوح دلوقتي',closing:'هيقفل قريب',closed:'مقفول دلوقتي'};
+    const statusLabel=statusLabelMap[statusInfo.status]||'';
+
+    const features=[];
+    if(b.driveThru) features.push(`<div class="br-tag"><i class="fas fa-car"></i> درايف موت</div>`);
+    if(b.takeAway) features.push(`<div class="br-tag"><i class="fas fa-bag-shopping"></i> تيك أواي</div>`);
+
+    return `<div class="br-card reveal" onclick="selectBranch('${b.id}')" style="transition-delay:${i*.06}s">
+      <div class="br-card-in">
+        ${img?`<div class="br-img-wrap"><img class="br-img" src="${img}" alt="${name}" loading="lazy" onerror="this.parentElement.innerHTML='<div style=\\'height:100%;background:linear-gradient(135deg,var(--bg3),var(--bg2))\\'></div>'"><div class="br-img-ov"></div><div class="br-shine"></div></div>`:`<div class="br-img-wrap" style="height:80px;background:linear-gradient(135deg,var(--bg3),var(--bg2))"></div>`}
+        ${items?`<div class="br-badge">${items} صنف</div>`:''}
+        <div class="${statusClass}" data-branch-indicator="${i}"></div>
+        <div class="br-body">
+          <div class="br-name"><span class="br-name-dot"></span>${name}</div>
+          <div class="br-tags">
+            ${city?`<div class="br-tag"><i class="fas fa-location-dot"></i>${city}</div>`:''}
+            ${phone?`<div class="br-tag"><i class="fas fa-phone"></i>${phone}</div>`:''}
+            ${addr?`<div class="br-tag"><i class="fas fa-map"></i>${addr}</div>`:''}
+            ${features.join('')}
+            <div class="br-tag br-status-tag ${statusInfo.status}" data-branch-status="${i}"><i class="fas fa-circle" style="font-size:6px"></i><span>${statusLabel}</span></div>
+          </div>
+          ${gpsUrl?`<a href="${gpsUrl}" target="_blank" rel="noopener" class="br-gps" onclick="event.stopPropagation()"><i class="fas fa-map-location-dot"></i> فتح الموقع على الخريطة</a>`:''}
+          ${hoursHtml}
+          ${desc?`<div class="br-desc">${desc}</div>`:''}
+          <div class="br-cta"><span>عرض المنيو</span><i class="fas fa-arrow-left"></i></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  setTimeout(()=>{initTilt();initReveal()},50);
+}
+
+function refreshBranchStatuses(){
+  const labels={open:'مفتوح دلوقتي',closing:'هيقفل قريب',closed:'مقفول دلوقتي'};
+  br.forEach((branch,index)=>{
+    const status=isBranchOpen(branch.hours||[]).status;
+    const indicator=document.querySelector(`[data-branch-indicator="${index}"]`);
+    if(indicator) indicator.className=`br-status${status==='closed'?' br-status-closed':status==='closing'?' br-status-closing':''}`;
+    const tag=document.querySelector(`[data-branch-status="${index}"]`);
+    if(tag){
+      tag.className=`br-tag br-status-tag ${status}`;
+      const text=tag.querySelector('span');
+      if(text) text.textContent=labels[status];
     }
-    sM('bMo');
+  });
+  const badge=document.getElementById('mvStatusBadge');
+  if(badge&&selB){
+    const status=isBranchOpen(selB.hours||[]).status;
+    badge.className=`mv-status-badge ${status}`;
+    document.getElementById('mvStatusText').textContent=labels[status];
+  }
 }
 
-async function svB(){
-    if(!ca()){ts('استنى...','e');return}
-    const n=document.getElementById('bN').value.trim(),a=document.getElementById('bA').value.trim(),l=document.getElementById('bL').value.trim();
-    const dm=document.getElementById('bDM').checked, ta=document.getElementById('bTA').checked;
-    if(!n){ts('اكتب اسم الفرع','e');return}
-    
-    const branchHours=[];
-    let hasAnyHours=false;
-    for(let i=0;i<7;i++){
-        const s=document.getElementById('bh'+i+'s');
-        const e=document.getElementById('bh'+i+'e');
-        const val=buildTimeRange(s?s.value.trim():'', e?e.value.trim():'');
-        if(val) hasAnyHours=true;
-        branchHours.push({day:BRANCH_DAYS[i], time:val});
+/* ═══════════════════════════════════════
+   اختيار فرع والرجوع
+   ═══════════════════════════════════════ */
+function selectBranch(id){
+  selB=br.find(b=>b.id===id);
+  if(!selB)return;
+  document.getElementById('brView').style.display='none';
+  document.getElementById('menuView').style.display='block';
+  document.getElementById('backBtn').classList.add('show');
+  document.getElementById('hdrLogoText').textContent=selB.name||selB.n||'المنيو';
+  document.getElementById('hdrSp').style.display='none';
+  document.getElementById('hotlineBar').style.display='none';
+  renderMvHeader();renderCats();renderMenu();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBack(){
+  selB=null;
+  document.getElementById('menuView').style.display='none';
+  document.getElementById('brView').style.display='block';
+  document.getElementById('backBtn').classList.remove('show');
+  document.getElementById('hdrLogoText').textContent=settings.siteName||DEFAULTS.name;
+  document.getElementById('hdrSp').style.display='';
+  if(settings.callCenter)document.getElementById('hotlineBar').style.display='';
+  document.getElementById('searchIn').value='';
+  setTimeout(()=>{initTilt();initReveal()},100);
+}
+
+/* ═══════════════════════════════════════
+   هيدر صفحة المنيو مع المواعيد
+   ═══════════════════════════════════════ */
+function renderMvHeader(){
+  const h=document.getElementById('mvHerd');
+  const img=selB.image||selB.img||selB.photo||selB.cover||'';
+  const name=selB.name||selB.n||'';
+  const desc=selB.desc||selB.description||'';
+  const addr=selB.address||selB.addr||'';
+  const gpsUrl=getGpsUrl(selB);
+  const logo=document.getElementById('hdrLogoImg').src;
+  const branchHours=selB.hours||[];
+  const hoursHtml=buildHoursHTML(branchHours,'mv-hours',true,'selected');
+  const statusInfo=isBranchOpen(branchHours);
+  
+  const statusBadgeClass=statusInfo.status;
+  const statusBadgeText=statusInfo.status==='open'?'مفتوح دلوقتي':statusInfo.status==='closing'?'هيقفل قريب':'مقفول دلوقتي';
+
+  h.innerHTML=`${img?`<img class="mv-img" src="${img}" alt="" onerror="this.style.display='none'">`:''}
+    <div class="mv-herd-ov"></div>
+    <div class="mv-herd-info">
+      <img class="mv-herd-logo" src="${logo}" alt="لوجو">
+      <div class="mv-herd-name">${name}</div>
+      <div class="mv-herd-sub"><i class="fas fa-location-dot"></i>${addr||desc||'منيو الفرع'}</div>
+      <div class="mv-status-badge ${statusBadgeClass}" id="mvStatusBadge"><span class="dot"></span><span id="mvStatusText">${statusBadgeText}</span></div>
+      ${gpsUrl?`<a href="${gpsUrl}" target="_blank" rel="noopener" class="mv-gps-link"><i class="fas fa-map-location-dot"></i> فتح الموقع على الخريطة</a>`:''}
+      ${hoursHtml}
+    </div>`;
+  if(!img){h.style.background='linear-gradient(135deg,var(--bg3),var(--bg2))';h.style.height='auto'}else{h.style.background='';h.style.height=''}
+}
+
+/* ═══════════════════════════════════════
+   المنيو والتصنيفات
+   ═══════════════════════════════════════ */
+function getBrItems(){return mi.filter(m=>(m.branchId||m.bid||m.branch)===selB.id)}
+
+function renderCats(){
+  const items=getBrItems();
+  const catsSet=new Set();
+  items.forEach(i=>{
+    const cat=i.category||i.cat||'';
+    if(cat)catsSet.add(cat);
+  });
+  const cats=['الكل',...catsSet];
+  activeCat='الكل';
+  document.getElementById('catsArea').innerHTML=cats.map(c=>`<button class="cat ${c==='الكل'?'on':''}" onclick="setCat('${c}',this)"><span>${c}</span></button>`).join('');
+}
+
+function setCat(c,btn){activeCat=c;document.querySelectorAll('.cat').forEach(b=>b.classList.remove('on'));btn.classList.add('on');renderMenu();}
+
+function selectPrice(cardId,priceIdx){
+  const card=document.getElementById(cardId);
+  if(!card) return;
+  const btns=card.querySelectorAll('.mc-opt-btn');
+  btns.forEach(b=>b.classList.remove('active'));
+  btns[priceIdx].classList.add('active');
+  const prices=JSON.parse(card.dataset.prices);
+  const curr=card.dataset.curr;
+  const priceEl=card.querySelector('.mc-price-val');
+  if(priceEl) priceEl.textContent=prices[priceIdx].price;
+  const baseImg=card.dataset.baseImg;
+  const imgEl=card.querySelector('.mc-img img');
+  if(imgEl){const sizeImg=prices[priceIdx].imageUrl||baseImg;if(sizeImg){imgEl.src=sizeImg;imgEl.parentElement.style.display='';}else imgEl.parentElement.style.display='none';}
+}
+
+function normalizeSizeLabel(label,index){
+  const value=String(label||'').trim();
+  if(!value)return '';
+  const labels={small:'صغير',quarter:'صغير',quarterKilo:'صغير',eighthKilo:'صغير',quarterC:'صغير','ربع':'صغير',medium:'وسط',half:'وسط',halfKilo:'وسط','نص':'وسط',large:'كبير',keizer:'كبير','كيزر':'كبير','كبير':'كبير'};
+  return labels[value]||value;
+}
+
+function renderMenu(){
+  const g=document.getElementById('mGrid');
+  let items=getBrItems();
+  const q=document.getElementById('searchIn').value.trim().toLowerCase();
+  if(q)items=items.filter(i=>(i.name||'').toLowerCase().includes(q)||(i.description||'').toLowerCase().includes(q));
+
+  if(activeCat!=='الكل'){items=items.filter(i=>(i.category||i.cat||'')===activeCat);}
+
+  if(!items.length){g.innerHTML='<div class="empty"><i class="fas fa-utensils"></i><p>لا توجد أصناف</p></div>';return}
+
+  g.innerHTML=items.map((m,i)=>{
+    const cardId='mc-'+m.id+'-'+i;
+    const name=m.name||'';
+    const desc=m.description||'';
+    const baseImg=m.imageUrl||m.image||m.img||'';
+    const cat=m.category||m.cat||'';
+    const curr=m.currency||m.cur||'ج.م';
+    const prices=m.prices||[];
+    const hasImg=!!baseImg||prices.some(price=>!!price.imageUrl);
+
+    let priceHtml='';
+    let optionsHtml='';
+    let currentImg=prices[0]?.imageUrl||baseImg||prices.find(price=>price.imageUrl)?.imageUrl||'';
+    let dataPrices='';
+
+    if(prices.length===0){priceHtml=`<div class="mc-price">0 <small>${curr}</small></div>`;}
+    else if(prices.length===1){const sizeLabel=(m.itemType||'dish')==='dish'?'':normalizeSizeLabel(prices[0].label||prices[0].size,0);priceHtml=`${sizeLabel?`<div class="mc-size-label">${sizeLabel}</div>`:''}<div class="mc-price"><span class="mc-price-val">${prices[0].price}</span> <small>${curr}</small></div>`;}
+    else {
+      const firstPrice=prices[0].price;
+      priceHtml=`<div class="mc-price"><span class="mc-price-val">${firstPrice}</span> <small>${curr}</small></div>`;
+      optionsHtml=`<div class="mc-options">${prices.map((p,idx)=>{
+        const label=normalizeSizeLabel(p.label||p.size,idx)||`خيار ${idx+1}`;
+        const isActive=idx===0?' active':'';
+        return `<button class="mc-opt-btn${isActive}" onclick="event.stopPropagation(); selectPrice('${cardId}', ${idx})">${label}</button>`;
+      }).join('')}</div>`;
+      currentImg=prices[0].imageUrl||baseImg||prices.find(price=>price.imageUrl)?.imageUrl||'';
+      dataPrices=`data-prices='${JSON.stringify(prices)}' data-curr="${curr}" data-base-img="${baseImg}"`;
     }
-    
-    const btn=document.getElementById('svBB');btn.textContent='جاري...';btn.disabled=true;
-    try{
-        const d={name:n, address:a, mapLink:l||'', driveThru:dm, takeAway:ta};
-        if(hasAnyHours){d.hours=branchHours;}
-        else{d.hours=firebase.firestore.FieldValue.delete();}
-        
-        const c=ec(l);d.location=c||firebase.firestore.FieldValue.delete();
-        if(eB){await db.collection('branches').doc(eB).update(d);ts('تم التحديث ✓')}
-        else{d.createdAt=firebase.firestore.FieldValue.serverTimestamp();await db.collection('branches').add(d);ts('تم الإضافة ✓')}
-        cM()
-    }catch(e){ts('خطأ','e')}finally{btn.textContent=eB?'تحديث':'إضافة';btn.disabled=false}
+
+    return `<div class="mc ${hasImg?'':'no-img'}" id="${cardId}" ${dataPrices} style="animation:fadeUp .4s ease ${i*.03}s both">
+      <div class="mc-in">
+        ${hasImg?`<div class="mc-img"><img src="${currentImg}" alt="${name}" loading="lazy" onclick="event.stopPropagation();window.open(this.currentSrc,'_blank','noopener')" onerror="this.parentElement.style.display='none'"><div class="mc-img-ov"></div></div>`:''}
+        <div class="mc-body">
+          ${cat?`<div class="mc-cat">${cat}</div>`:''}
+          <div class="mc-name">${name}</div>
+          ${desc?`<div class="mc-desc">${desc}</div>`:''}
+          ${optionsHtml}
+          ${priceHtml}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
-async function dB(id){if(!ca())return;if(!confirm('مسح الفرع؟'))return;try{const s=await db.collection('menuItems').where('branchId','==',id).get();const b=db.batch();s.forEach(d=>b.delete(d.ref));await b.commit();await db.collection('branches').doc(id).delete();ts('تم المسح ✓')}catch(e){ts('خطأ','e')}}
+function filterMenu(){renderMenu()}
 
-function rAB(){
-    const c=document.getElementById('aBL'),n=document.getElementById('nB');
-    document.getElementById('bC').textContent=br.length?`(${br.length})`:'';
-    if(!br.length){c.innerHTML='';n.classList.remove('hidden');return}
-    n.classList.add('hidden');
-    
-    c.innerHTML=br.map((b,index)=>{
-        const cnt=it.filter(x=>x.branchId===b.id).length;
-        const features = [];
-        if(b.driveThru) features.push('<span class="text-xs bg-amber-500/10 text-amber-400 px-2 py-0.5 rounded-lg">درايف موت</span>');
-        if(b.takeAway) features.push('<span class="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded-lg">تيك أواي</span>');
-        
-        // حالة الفرع
-        const branchHours = b.hours || [];
-        const statusInfo = getBranchStatus(branchHours);
-        const statusDotClass = statusInfo.status;
-        const statusTextColor = statusInfo.status==='open'?'text-emerald-400':statusInfo.status==='closing'?'text-amber-400':'text-red-400';
-        
-        // ملخص المواعيد
-        let hoursPreview = '';
-        if(branchHours.length > 0){
-            const todayName = DAY_INDEX_MAP[new Date().getDay()];
-            const todayH = branchHours.find(h=>h.day===todayName);
-            if(todayH && todayH.time){
-                hoursPreview = `<div class="text-xs text-stone-500 mt-0.5"><span class="iconify inline text-stone-500" data-icon="mdi:clock-outline" style="font-size:11px"></span> النهارده: ${todayH.time}</div>`;
-            }
-        }
-        
-        return`<div class="bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800/50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-9 h-9 rounded-lg bg-amber-500/10 flex items-center justify-center flex-shrink-0"><span class="iconify text-amber-500" data-icon="mdi:store"></span></div>
-                    <div class="min-w-0">
-                        <div class="font-semibold text-sm text-white truncate flex items-center gap-1.5">${b.name} <span class="status-dot ${statusDotClass}"></span><span class="text-xs ${statusTextColor} font-semibold">${statusInfo.label}</span></div>
-                        <div class="text-xs text-stone-500 truncate">${b.address||'—'} · ${cnt} صنف</div>
-                        ${features.length ? `<div class="flex gap-1 mt-1">${features.join('')}</div>` : ''}
-                        ${hoursPreview}
-                    </div>
-                </div>
-                <div class="flex items-center gap-1 flex-shrink-0">
-                    <button onclick="moveBranch('${b.id}',-1)" title="تحريك لأعلى" ${index===0?'disabled':''} class="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center hover:bg-stone-700 disabled:opacity-30 disabled:cursor-not-allowed"><span class="iconify text-stone-300 text-sm" data-icon="mdi:chevron-up"></span></button>
-                    <button onclick="moveBranch('${b.id}',1)" title="تحريك لأسفل" ${index===br.length-1?'disabled':''} class="w-8 h-8 rounded-lg bg-stone-800 flex items-center justify-center hover:bg-stone-700 disabled:opacity-30 disabled:cursor-not-allowed"><span class="iconify text-stone-300 text-sm" data-icon="mdi:chevron-down"></span></button>
-                    <button onclick="sBM('${b.id}')" class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center hover:bg-amber-500/20"><span class="iconify text-amber-400 text-sm" data-icon="mdi:pencil"></span></button>
-                    <button onclick="dB('${b.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20"><span class="iconify text-red-400 text-sm" data-icon="mdi:delete"></span></button>
-                </div>
-            </div>
-        </div>`}).join('');
-        
-    const o=br.map(b=>`<option value="${b.id}">${b.name}</option>`).join('');
-    document.getElementById('iBr').innerHTML='<option value="">اختر الفرع</option>'+o;
-    document.getElementById('aF').innerHTML='<option value="">كل الفروع</option>'+o;
+/* ═══════════════════════════════════════
+   تحميل البيانات من Firebase
+   ═══════════════════════════════════════ */
+function loadData(){
+  db.collection('settings').doc('main').onSnapshot(snapshot=>{
+    settings=snapshot.exists?snapshot.data():{};
+    liveSettingsReady=true;
+    refreshLiveViews();
+  },error=>{
+    console.error(error);
+    settings={};
+    liveSettingsReady=true;
+    refreshLiveViews();
+  });
+
+  db.collection('branches').onSnapshot(snapshot=>{
+    primaryBranches=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+    liveBranchesReady=true;
+    if(primaryBranches.length||legacyBranchesLoaded){refreshLiveViews();return;}
+    legacyBranchesLoaded=true;
+    db.collection('branch').get().then(legacySnapshot=>{
+      legacyBranches=legacySnapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+    }).catch(console.error).finally(refreshLiveViews);
+  },error=>{
+    console.error(error);
+    liveBranchesReady=true;
+    refreshLiveViews();
+  });
+
+  db.collection('menuItems').onSnapshot(snapshot=>{
+    primaryMenuItems=snapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+    liveItemsReady=true;
+    if(primaryMenuItems.length||legacyMenuLoaded){refreshLiveViews();return;}
+    legacyMenuLoaded=true;
+    db.collection('menu').get().then(legacySnapshot=>{
+      legacyMenuItems=legacySnapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+      if(legacyMenuItems.length)return null;
+      return db.collection('items').get().then(itemsSnapshot=>{
+        legacyItems=itemsSnapshot.docs.map(doc=>({id:doc.id,...doc.data()}));
+      });
+    }).catch(console.error).finally(refreshLiveViews);
+  },error=>{
+    console.error(error);
+    liveItemsReady=true;
+    refreshLiveViews();
+  });
 }
 
-async function moveBranch(id,direction){
-    const currentIndex=br.findIndex(branch=>branch.id===id);
-    const nextIndex=currentIndex+direction;
-    if(currentIndex<0||nextIndex<0||nextIndex>=br.length)return;
-    const ordered=[...br];
-    [ordered[currentIndex],ordered[nextIndex]]=[ordered[nextIndex],ordered[currentIndex]];
-    br=ordered.map((branch,index)=>({...branch,sortOrder:index}));
-    rAB();
-    try{
-        const batch=db.batch();
-        br.forEach((branch,index)=>batch.update(db.collection('branches').doc(branch.id),{sortOrder:index}));
-        await batch.commit();
-        ts('تم تحديث ترتيب الفروع ✓');
-    }catch(e){ts('تعذر حفظ ترتيب الفروع','e')}
-}
-
-// Items
-function sIM(id=null){
-    eI=id;document.getElementById('iPr').classList.add('hidden');document.getElementById('iIm').value='';document.getElementById('allBrChk').checked = false; toggleAllBr(); 
-    if(id){const t=it.find(x=>x.id===id);if(t){document.getElementById('iN').value=t.name||'';document.getElementById('iDe').value=t.description||'';document.getElementById('iCat').value=t.category||'';document.getElementById('iBr').value=t.branchId||'';document.getElementById('allBrChk').disabled=true;fillPrices(t);if(t.imageUrl){document.getElementById('iPrI').src=t.imageUrl;document.getElementById('iPr').classList.remove('hidden');}}document.getElementById('iMT').textContent='تعديل';document.getElementById('svIB').textContent='تحديث'}
-    else{document.getElementById('iN').value='';document.getElementById('iDe').value='';document.getElementById('iCat').value='';document.getElementById('iBr').value='';document.getElementById('allBrChk').disabled=false;setItemTy('dish');}
-    sM('iMo')
-}
-
-async function svI(){
-    if(!ca()){ts('استنى...','e');return}
-    const n=document.getElementById('iN').value.trim(), de=document.getElementById('iDe').value.trim(), cat=document.getElementById('iCat').value, f=document.getElementById('iIm').files[0];
-    const isAllBr = document.getElementById('allBrChk').checked;
-    const bi = isAllBr ? 'all' : document.getElementById('iBr').value;
-    
-    if(!n){ts('اكتب اسم الصنف','e');return}
-    if(!eI && !isAllBr && !bi){ts('اختر الفرع','e');return}
-    
-    const validPrices = [];
-    for(let p of currentPrices) {
-        if(p.size && p.price) {
-            let imgData = p.imageUrl || ''; 
-            if(p._file) { try { imgData = await uploadToCld(p._file); } catch(e) { ts('خطأ في رفع صورة الحجم: '+e.message, 'e'); return; } }
-            validPrices.push({ size: p.size, label: p.label, price: parseFloat(p.price), imageUrl: imgData });
-        }
-    }
-    if(validPrices.length === 0){ts('اضف سعر واحد على الأقل','e');return}
-
-    const btn=document.getElementById('svIB');btn.textContent='جاري...';btn.disabled=true;
-    try{
-        let img='';
-        if(eI){const x=it.find(i=>i.id===eI);img=x?x.imageUrl||'':''}
-        if(f){img = await uploadToCld(f)}
-        
-        const baseData = { name: n, description: de, category: cat, imageUrl: img, itemType: currentTy, prices: validPrices, updatedAt: firebase.firestore.FieldValue.serverTimestamp() };
-
-        if(eI){ await db.collection('menuItems').doc(eI).update(baseData);ts('تم التحديث ✓') }
-        else {
-            baseData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-            if(isAllBr) { if(br.length === 0) { ts('لا توجد فروع!', 'e'); throw new Error('No branches'); } const batch = db.batch(); br.forEach(b => { const docRef = db.collection('menuItems').doc(); batch.set(docRef, { ...baseData, branchId: b.id }); }); await batch.commit(); ts(`تم الإضافة لـ ${br.length} فروع ✓`); }
-            else { baseData.branchId = bi; await db.collection('menuItems').add(baseData); ts('تم الإضافة ✓'); }
-        }
-        cM();
-    }catch(e){ts('خطأ: '+e.message,'e')}finally{btn.textContent=eI?'تحديث':'إضافة';btn.disabled=false}
-}
-
-async function dI(id){if(!ca())return;if(!confirm('مسح الصنف؟'))return;try{await db.collection('menuItems').doc(id).delete();ts('تم المسح ✓')}catch(e){ts('خطأ','e')}}
-function normalizeSizeLabel(label,index) { const value=String(label||'').trim(); if(!value)return ''; const labels={small:'صغير',quarter:'صغير',quarterKilo:'صغير',eighthKilo:'صغير',quarterC:'صغير','ربع':'صغير',medium:'وسط',half:'وسط',halfKilo:'وسط','نص':'وسط',large:'كبير',keizer:'كبير','كيزر':'كبير','كبير':'كبير'}; return labels[value]||value; }
-function getPriceLabel(t) { if(!t.prices || t.prices.length === 0) return '0 ج.م'; if(t.itemType === 'dish') return `${t.prices[0].price} ج.م`; return t.prices.map((p,index) => `${normalizeSizeLabel(p.label||p.size,index)}: ${p.price}`).join(' · '); }
-
-function rAI(){
-    const c=document.getElementById('aIL'),n=document.getElementById('nI'),f=document.getElementById('aF').value, catF=document.getElementById('aCatF').value;
-    br.sort((a,b)=>{
-        const aHasOrder=Number.isFinite(a.sortOrder),bHasOrder=Number.isFinite(b.sortOrder);
-        if(aHasOrder&&bHasOrder&&a.sortOrder!==b.sortOrder)return a.sortOrder-b.sortOrder;
-        if(aHasOrder!==bHasOrder)return aHasOrder?-1:1;
-        const aCreated=a.createdAt&&a.createdAt.toMillis?a.createdAt.toMillis():0;
-        const bCreated=b.createdAt&&b.createdAt.toMillis?b.createdAt.toMillis():0;
-        return bCreated-aCreated;
-    });
-    document.getElementById('iC').textContent=it.length?`(${it.length})`:'';
-    let fl=it;if(f)fl=fl.filter(x=>x.branchId===f);if(catF)fl=fl.filter(x=>x.category===catF);
-    if(!fl.length){c.innerHTML='';n.classList.remove('hidden');return}
-    n.classList.add('hidden');
-    c.innerHTML=fl.map(t=>{
-        const b=br.find(x=>x.id===t.branchId),img=t.imageUrl||`https://picsum.photos/seed/${t.id}/100/100`;
-        return`<div class="flex items-center gap-4 bg-stone-900/50 rounded-xl px-4 py-3 border border-stone-800/50 hover:bg-stone-900/80">
-            <img src="${img}" class="w-14 h-14 rounded-lg object-cover flex-shrink-0 border border-stone-700/50" onerror="this.src='https://picsum.photos/seed/fb/100/100'">
-            <div class="flex-1 min-w-0">
-                <div class="font-semibold text-sm text-white truncate">${t.name}</div>
-                <div class="text-xs text-stone-400 truncate">${getPriceLabel(t)}</div>
-                <div class="text-xs text-stone-500">${b?b.name:'—'} ${t.category ? '· '+t.category : ''}</div>
-            </div>
-            <div class="flex items-center gap-1 flex-shrink-0">
-                <button onclick="sIM('${t.id}')" class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center hover:bg-amber-500/20"><span class="iconify text-amber-400 text-sm" data-icon="mdi:pencil"></span></button>
-                <button onclick="dI('${t.id}')" class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center hover:bg-red-500/20"><span class="iconify text-red-400 text-sm" data-icon="mdi:delete"></span></button>
-            </div>
-        </div>`}).join('')
-}
-
-// تحديث حالة الفروع كل دقيقة
-setInterval(()=>{ rAB(); }, 60000);
-
-db.collection('settings').doc('main').onSnapshot(s=>{if(s.exists){se=s.data();lSF()}});
-db.collection('categories').orderBy('createdAt','desc').onSnapshot(s=>{cats=s.docs.map(d=>({id:d.id,...d.data()}));rACat();rAI()});
-db.collection('branches').orderBy('createdAt','desc').onSnapshot(s=>{br=s.docs.map(d=>({id:d.id,...d.data()}));rAB();rAI()});
-db.collection('menuItems').orderBy('createdAt','desc').onSnapshot(s=>{it=s.docs.map(d=>({id:d.id,...d.data()}));rAB();rACat();rAI()});
+applyTheme(document.documentElement.dataset.theme||'light',false);
+loadData();
+setInterval(refreshBranchStatuses,15000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) refreshBranchStatuses()});
 </script>
 </body>
 </html>

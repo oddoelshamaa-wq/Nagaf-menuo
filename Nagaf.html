@@ -364,7 +364,6 @@ a{color:inherit;text-decoration:none}
       <img class="hero-cover" id="heroCover" src="" alt="صورة المطعم">
       <div class="hero-overlay"></div>
       <div class="hero-content">
-        <div class="hero-tag"><i class="fas fa-circle"></i> اشهر المطاعم</div>
         <h1 class="hero-title" id="heroTitle">اكتشف المنيو</h1>
         <p class="hero-sub" id="heroSub">اختار الفرع وشوف المنيو كامل ده</p>
         <div class="hero-line"></div>
@@ -418,13 +417,11 @@ const fc={apiKey:"AIzaSyBor5YRDNrtxTbvwW-ev4krDQpES7CgSDY",authDomain:"nagaf-men
 firebase.initializeApp(fc);const db=firebase.firestore();
 
 const DEFAULTS = {
-  name: 'نجف',
   logo: 'https://picsum.photos/seed/nagaflogo/200/200',
   cover: 'https://picsum.photos/seed/nagafcover/1200/500',
   hotline: '',
   phone: '',
   whatsapp: '',
-  description: 'أكل بيتي مصري أصيل',
   address: '',
   lat: 0, lng: 0,
   hours: [

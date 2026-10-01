@@ -244,6 +244,9 @@ a{color:inherit;text-decoration:none}
 .cat.on::before,.cat:hover::before{opacity:1}
 
 .mg{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;padding:8px 24px 48px}
+.mc-group-heading{grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:12px;padding:0 2px 10px;border-bottom:1px solid rgba(158,0,1,.14);font-size:17px;font-weight:800;color:var(--text)}
+.mc-group-heading:first-child{margin-top:0}
+.mc-group-count{font-size:11px;color:var(--text3);font-weight:600}
 .mc{perspective:700px}
 .mc-in{display:flex;background:var(--card);backdrop-filter:blur(20px);border:1px solid rgba(158,0,1,.06);border-radius:var(--r);overflow:hidden;transition:all .4s cubic-bezier(.2,.8,.2,1);transform-style:preserve-3d;position:relative}
 .mc:hover .mc-in{transform:translateY(-6px) rotateX(2deg);box-shadow:var(--shadow2),0 0 40px rgba(158,0,1,.04);border-color:rgba(158,0,1,.12)}
@@ -841,7 +844,7 @@ function renderMenu(){
 
   if(!items.length){g.innerHTML='<div class="empty"><i class="fas fa-utensils"></i><p>لا توجد أصناف</p></div>';return}
 
-  g.innerHTML=items.map((m,i)=>{
+  const renderItem=(m,i)=>{
     const cardId='mc-'+m.id+'-'+i;
     const name=m.name||'';
     const desc=m.description||'';
@@ -882,7 +885,21 @@ function renderMenu(){
         </div>
       </div>
     </div>`;
-  }).join('');
+  };
+
+  if(activeCat==='الكل'){
+    const groups=new Map();
+    items.forEach(item=>{
+      const category=item.category||item.cat||'غير مصنف';
+      if(!groups.has(category))groups.set(category,[]);
+      groups.get(category).push(item);
+    });
+    g.innerHTML=Array.from(groups,([category,groupItems])=>
+      `<div class="mc-group-heading">${category}<span class="mc-group-count">${groupItems.length} ${groupItems.length===1?'صنف':'أصناف'}</span></div>${groupItems.map((item,index)=>renderItem(item,index)).join('')}`
+    ).join('');
+  }else{
+    g.innerHTML=items.map((item,index)=>renderItem(item,index)).join('');
+  }
 }
 
 function filterMenu(){renderMenu()}
